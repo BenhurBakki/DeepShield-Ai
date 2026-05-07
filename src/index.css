@@ -386,3 +386,4 @@ input:focus, textarea:focus {
 input::placeholder, textarea::placeholder {
   color: rgba(148, 163, 184, 0.5) !important;
 }
+/* glassmorphism layer */
