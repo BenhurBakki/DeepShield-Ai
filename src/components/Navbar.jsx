@@ -146,3 +146,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+// mobile menu support
