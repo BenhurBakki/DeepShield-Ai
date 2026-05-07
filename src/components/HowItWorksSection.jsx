@@ -252,3 +252,4 @@ const HowItWorksSection = () => {
 };
 
 export default HowItWorksSection;
+// timeline connector
