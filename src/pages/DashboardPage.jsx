@@ -527,3 +527,4 @@ const DashboardPage = () => {
 export default DashboardPage;
 // drag-drop scan upload
 // live processing animation
+// threat alerts analytics tabs
