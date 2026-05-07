@@ -98,18 +98,22 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed }) => {
 // Upload panel
 const ScanUploadPanel = ({ onScanStart }) => {
   const [preview, setPreview] = useState(null);
+  const [file, setFile] = useState(null);
   const onDrop = useCallback((files) => {
-    const file = files[0];
-    if (file) setPreview(URL.createObjectURL(file));
+    const f = files[0];
+    if (f) {
+      setFile(f);
+      setPreview(URL.createObjectURL(f));
+    }
   }, []);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop, accept: { 'image/*': [] }, maxFiles: 1
+    onDrop, accept: { 'image/*': [], 'video/*': [] }, maxFiles: 1
   });
 
   return (
     <div className="glass-card rounded-2xl p-6">
       <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-        <Upload size={16} className="text-[#0ea5e9]" /> Upload Facial Image
+        <Upload size={16} className="text-[#0ea5e9]" /> Upload Facial Image or Video
       </h3>
       {!preview ? (
         <div
@@ -132,12 +136,16 @@ const ScanUploadPanel = ({ onScanStart }) => {
             <p className="text-sm font-semibold text-slate-300 mb-1">
               {isDragActive ? 'Drop your image here' : 'Drag & drop your image'}
             </p>
-            <p className="text-xs text-slate-500">or click to browse • JPEG, PNG, WebP • Max 10MB</p>
+            <p className="text-xs text-slate-500">or click to browse • JPEG, PNG, MP4, WEBM • Max 50MB</p>
           </motion.div>
         </div>
       ) : (
         <div className="relative rounded-xl overflow-hidden">
-          <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
+          {file && file.type.startsWith('video') ? (
+            <video src={preview} className="w-full h-48 object-cover rounded-xl" autoPlay muted loop />
+          ) : (
+            <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-[rgba(2,4,8,0.7)] to-transparent" />
           {/* Scanning corners */}
           {[{ top: 8, left: 8 }, { top: 8, right: 8 }, { bottom: 8, left: 8 }, { bottom: 8, right: 8 }].map((pos, i) => (
@@ -161,7 +169,7 @@ const ScanUploadPanel = ({ onScanStart }) => {
       <div className="mt-4 flex gap-3">
         <button
           id="start-scan-btn"
-          onClick={() => preview && onScanStart()}
+          onClick={() => preview && onScanStart(file)}
           className={`btn-primary flex-1 justify-center ${!preview ? 'opacity-50 cursor-not-allowed' : ''}`}
           disabled={!preview}
         >
@@ -224,18 +232,22 @@ const LiveProcessing = ({ scanning, progress, currentStep }) => {
 
 // Results panel
 const ResultsPanel = ({ show }) => {
-  const results = [
-    { label: 'Similarity Score', value: '94.3%', color: '#ef4444', level: 94.3 },
-    { label: 'Deepfake Probability', value: '87.1%', color: '#f59e0b', level: 87.1 },
-    { label: 'Confidence Score', value: '96.8%', color: '#0ea5e9', level: 96.8 },
-  ];
-
-  if (!show) return (
+  if (!show || show === true) return (
     <div className="glass-card rounded-2xl p-6 flex flex-col items-center justify-center min-h-[200px] text-center">
       <Eye size={28} className="text-slate-700 mb-3" />
-      <p className="text-sm text-slate-600">Upload an image and run a scan to see results</p>
+      <p className="text-sm text-slate-600">Upload an image or video and run a scan to see results</p>
     </div>
   );
+
+  const deepfakeProb = (show.deepfake_probability * 100).toFixed(1);
+  const realProb = (show.real_probability * 100).toFixed(1);
+  const isDeepfake = show.verdict === 'deepfake';
+
+  const results = [
+    { label: 'Deepfake Probability', value: `${deepfakeProb}%`, color: isDeepfake ? '#ef4444' : '#f59e0b', level: show.deepfake_probability * 100 },
+    { label: 'Real Probability', value: `${realProb}%`, color: !isDeepfake ? '#10b981' : '#0ea5e9', level: show.real_probability * 100 },
+    { label: 'Faces Detected', value: `${show.faces_detected}`, color: '#8b5cf6', level: 100 },
+  ];
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-2xl p-6">
@@ -243,7 +255,9 @@ const ResultsPanel = ({ show }) => {
         <h3 className="text-base font-bold text-white flex items-center gap-2">
           <Eye size={16} className="text-[#0ea5e9]" /> Detection Results
         </h3>
-        <span className="threat-critical text-[10px] font-bold px-2 py-1 rounded-full">THREAT DETECTED</span>
+        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${isDeepfake ? 'threat-critical' : 'bg-[rgba(16,185,129,0.15)] text-emerald-400'}`}>
+          {isDeepfake ? 'THREAT DETECTED' : (show.verdict === 'uncertain' ? 'UNCERTAIN' : 'CLEAN')}
+        </span>
       </div>
 
       <div className="space-y-4 mb-5">
@@ -309,7 +323,8 @@ const DashboardPage = () => {
   const [showResults, setShowResults] = useState(false);
   const intervalRef = useRef(null);
 
-  const startScan = () => {
+  const startScan = async (file) => {
+    if (!file) return;
     setScanning(true);
     setProgress(0);
     setCurrentStep(0);
@@ -319,17 +334,45 @@ const DashboardPage = () => {
     let p = 0;
     let step = 0;
     intervalRef.current = setInterval(() => {
-      p += 1.5;
-      setProgress(Math.min(p, 100));
-      const newStep = Math.floor((p / 100) * 5);
-      if (newStep !== step) { step = newStep; setCurrentStep(step); }
-      if (p >= 100) {
-        clearInterval(intervalRef.current);
-        setScanning(false);
-        setCurrentStep(5);
-        setShowResults(true);
+      p += 2;
+      if (p <= 90) { // cap at 90% until backend returns
+        setProgress(p);
+        const newStep = Math.floor((p / 100) * 5);
+        if (newStep !== step && newStep < 4) { step = newStep; setCurrentStep(step); }
       }
-    }, 60);
+    }, 100);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const isVideo = file.type.startsWith('video');
+      const endpoint = isVideo ? '/api/detect_video' : '/api/detect';
+      
+      const response = await fetch(`http://localhost:5000${endpoint}`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      clearInterval(intervalRef.current);
+      setProgress(100);
+      setCurrentStep(5);
+      
+      if (response.ok) {
+        setShowResults(data);
+      } else {
+        console.error("Scan error:", data.error);
+        setShowResults(null);
+      }
+    } catch (error) {
+      clearInterval(intervalRef.current);
+      console.error("API error:", error);
+      setProgress(100);
+      setCurrentStep(5);
+      setShowResults(null);
+    }
+    setScanning(false);
   };
 
   useEffect(() => () => clearInterval(intervalRef.current), []);
