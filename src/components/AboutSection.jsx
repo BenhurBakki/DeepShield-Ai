@@ -203,3 +203,4 @@ const AboutSection = () => {
 };
 
 export default AboutSection;
+// animated counters
