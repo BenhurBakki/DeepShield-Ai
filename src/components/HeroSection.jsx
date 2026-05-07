@@ -390,3 +390,4 @@ const HeroSection = () => {
 
 export default HeroSection;
 // floating AI cards
+// scanning bracket overlay
