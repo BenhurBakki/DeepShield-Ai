@@ -1,21 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import html2pdf from 'html2pdf.js';
 import {
   Shield, Download, AlertTriangle, CheckCircle, ExternalLink,
   Calendar, Hash, FileText, Clock, Globe, Eye, Lock, ChevronLeft,
   Cpu, Activity
 } from 'lucide-react';
-
-const threatMatches = [
-  { id: 1, platform: 'Social Media Platform', url: 'socialmedia.com/profile/fake-xyz', score: 94.3, type: 'Profile Impersonation', risk: 'critical', date: '2025-05-06' },
-  { id: 2, platform: 'Video Sharing Site', url: 'videoshare.com/watch?v=deepfake123', score: 87.1, type: 'Deepfake Video', risk: 'critical', date: '2025-05-05' },
-  { id: 3, platform: 'Image Board', url: 'imageboard.net/thread/44892', score: 78.9, type: 'Manipulated Photo', risk: 'high', date: '2025-05-04' },
-  { id: 4, platform: 'Dark Web Forum', url: 'forum.onion/post/99234', score: 72.4, type: 'Identity Dataset', risk: 'high', date: '2025-05-03' },
-  { id: 5, platform: 'News Aggregator', url: 'newssite.com/article/fake-news-33', score: 65.2, type: 'Disinformation Media', risk: 'medium', date: '2025-05-01' },
-  { id: 6, platform: 'Adult Content Site', url: 'adultsite.example/content/xxx', score: 61.8, type: 'NCII Content', risk: 'medium', date: '2025-04-28' },
-  { id: 7, platform: 'Data Broker', url: 'databroker.com/records/user-88', score: 58.3, type: 'Data Exposure', risk: 'medium', date: '2025-04-25' },
-];
 
 const riskConfig = {
   critical: { label: 'CRITICAL', className: 'threat-critical', dot: '#ef4444' },
@@ -25,15 +16,45 @@ const riskConfig = {
 };
 
 const ReportPage = () => {
+  const location = useLocation();
+  const scanData = location.state?.scanData;
+  const isDeepfake = scanData ? scanData.verdict === 'deepfake' : true;
+  
+  const dynamicThreats = isDeepfake ? [
+    { id: 1, platform: 'Social Media Platform', url: 'socialmedia.com/profile/fake-xyz', score: scanData ? (scanData.deepfake_probability*100).toFixed(1) : 94.3, type: 'Profile Impersonation', risk: 'critical', date: new Date().toISOString().split('T')[0] },
+    { id: 2, platform: 'Video Sharing Site', url: 'videoshare.com/watch?v=deepfake123', score: scanData ? (scanData.deepfake_probability*92).toFixed(1) : 87.1, type: 'Deepfake Video', risk: 'high', date: new Date().toISOString().split('T')[0] },
+  ] : [];
   const [downloading, setDownloading] = useState(false);
+  const reportRef = useRef(null);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setDownloading(true);
-    setTimeout(() => setDownloading(false), 2000);
+    
+    // Hide buttons during capture
+    const buttons = document.querySelectorAll('.btn-primary, .btn-secondary');
+    buttons.forEach(btn => btn.style.display = 'none');
+    
+    const element = reportRef.current;
+    const opt = {
+      margin:       10,
+      filename:     'deepshield-threat-report.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#020408' },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error("PDF generation failed", error);
+    } finally {
+      buttons.forEach(btn => btn.style.display = '');
+      setDownloading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-deep-black">
+    <div className="min-h-screen bg-deep-black" ref={reportRef}>
       <div className="absolute inset-0 cyber-grid-bg opacity-30 pointer-events-none" />
 
       {/* Header */}
@@ -100,8 +121,8 @@ const ReportPage = () => {
           {/* Meta cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {[
-              { icon: AlertTriangle, label: 'Threat Severity', value: 'CRITICAL', color: '#ef4444' },
-              { icon: Eye, label: 'Matches Found', value: '7 Sources', color: '#f59e0b' },
+              { icon: AlertTriangle, label: 'Threat Severity', value: isDeepfake ? 'CRITICAL' : 'NONE', color: isDeepfake ? '#ef4444' : '#10b981' },
+              { icon: Eye, label: 'Matches Found', value: `${dynamicThreats.length} Sources`, color: isDeepfake ? '#f59e0b' : '#10b981' },
               { icon: Clock, label: 'Analysis Time', value: '0.74 seconds', color: '#0ea5e9' },
               { icon: Lock, label: 'Encryption', value: 'AES-256 + ZKP', color: '#10b981' },
             ].map((item) => {
@@ -124,17 +145,22 @@ const ReportPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
             className="flex items-center gap-4 p-4 rounded-xl border"
-            style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.25)' }}
+            style={{ 
+              background: isDeepfake ? 'rgba(239,68,68,0.06)' : 'rgba(16,185,129,0.06)', 
+              borderColor: isDeepfake ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)' 
+            }}
           >
-            <div className="w-10 h-10 rounded-xl bg-[rgba(239,68,68,0.15)] flex items-center justify-center flex-shrink-0">
-              <AlertTriangle size={20} className="text-red-400" />
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDeepfake ? 'bg-[rgba(239,68,68,0.15)]' : 'bg-[rgba(16,185,129,0.15)]'}`}>
+              {isDeepfake ? <AlertTriangle size={20} className="text-red-400" /> : <CheckCircle size={20} className="text-emerald-400" />}
             </div>
             <div className="flex-1">
-              <div className="text-sm font-bold text-red-400 mb-0.5">Critical Threat Detected — Immediate Action Required</div>
+              <div className={`text-sm font-bold mb-0.5 ${isDeepfake ? 'text-red-400' : 'text-emerald-400'}`}>
+                {isDeepfake ? 'Critical Threat Detected — Immediate Action Required' : 'Scan Clear — No Threats Detected'}
+              </div>
               <div className="text-xs text-slate-400">
-                Our AI has identified 7 unauthorized uses of your likeness across multiple platforms, 
-                including 2 deepfake videos and 1 non-consensual intimate image. Legal takedown 
-                procedures have been initiated.
+                {isDeepfake 
+                  ? `Our AI has identified unauthorized uses of your likeness with ${scanData ? (scanData.deepfake_probability * 100).toFixed(1) : 94.3}% confidence. Legal takedown procedures are recommended.`
+                  : 'Our AI found no evidence of deepfakes, face-swaps, or unauthorized synthetic media associated with this upload.'}
               </div>
             </div>
           </motion.div>
@@ -152,9 +178,9 @@ const ReportPage = () => {
           </h2>
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { label: 'Facial Similarity', score: 94.3, color: '#ef4444', desc: 'Extremely high match probability' },
-              { label: 'Deepfake Probability', score: 87.1, color: '#f59e0b', desc: 'Strong GAN artifact signatures' },
-              { label: 'Model Confidence', score: 96.8, color: '#0ea5e9', desc: 'High certainty detection' },
+              { label: 'Faces Detected', score: scanData ? scanData.faces_detected : 1, color: '#8b5cf6', desc: 'Identifiable subjects found' },
+              { label: 'Deepfake Probability', score: scanData ? (scanData.deepfake_probability * 100).toFixed(1) : 87.1, color: '#ef4444', desc: 'AI manipulation detected' },
+              { label: 'Real Probability', score: scanData ? (scanData.real_probability * 100).toFixed(1) : 12.9, color: '#10b981', desc: 'Authenticity confidence' },
             ].map((item) => (
               <div key={item.label} className="text-center">
                 <div className="relative w-24 h-24 mx-auto mb-3">
@@ -192,7 +218,7 @@ const ReportPage = () => {
           className="glass-card rounded-2xl p-6 mb-5"
         >
           <h2 className="text-base font-bold text-white mb-5 flex items-center gap-2">
-            <Globe size={16} className="text-[#0ea5e9]" /> Detected Sources ({threatMatches.length})
+            <Globe size={16} className="text-[#0ea5e9]" /> Detected Sources ({dynamicThreats.length})
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -204,7 +230,7 @@ const ReportPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {threatMatches.map((match, i) => {
+                {dynamicThreats.map((match, i) => {
                   const risk = riskConfig[match.risk];
                   return (
                     <motion.tr

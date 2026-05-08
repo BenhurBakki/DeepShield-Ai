@@ -298,7 +298,7 @@ const ResultsPanel = ({ show }) => {
         })}
       </div>
 
-      <Link to="/report" id="view-report-btn" className="btn-primary w-full justify-center text-sm">
+      <Link to="/report" state={{ scanData: show }} id="view-report-btn" className="btn-primary w-full justify-center text-sm">
         <FileText size={14} /> View Full Evidence Report
       </Link>
     </motion.div>

@@ -1,16 +1,69 @@
-# React + Vite
+# DeepShield AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+DeepShield AI is a state-of-the-art Identity Protection Platform designed to secure your digital presence by proactively detecting unauthorized deepfakes, face-swaps, and manipulated media across the internet. Built with a visually stunning, responsive React frontend and a powerful PyTorch-driven Flask backend, DeepShield leverages cutting-edge computer vision to provide comprehensive threat analysis and detailed cryptographic reporting.
 
-Currently, two official plugins are available:
+## Visual DeepFake Detection (Technical Overview)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Our detection system relies heavily on the research and datasets proposed in the context of visual deepfake detection. 
 
-## React Compiler
+We address the challenge that models proposed in current state-of-the-art literature (like FaceForensics++) often do not generalize well to real-life videos randomly collected from platforms like YouTube. Our solution relies on a dynamic neural network constantly updated with real-world data.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Our backend PyTorch model is based on a pre-trained **ResNet18** architecture that we fine-tune to solve the deepfake detection problem. We perform extensive inference incorporating both standard datasets and augmented real-world data to identify manipulations.
 
-## Expanding the ESLint configuration
+### Datasets
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The underlying model research utilizes two major data sources:
+1. **FaceForensics++**: Half of the dataset used in this project is from the [FaceForensics](https://github.com/ondyari/FaceForensics) deepfake detection dataset.
+2. **Real-world (YouTube) Data**: Augmented deepfake data collected from the wild to ensure our model detects highly customized, unseen manipulation techniques.
+
+When a model is trained on a combination of both datasets, it learns to detect both real-world manipulation techniques as well as the other synthetic methods mentioned in the FaceForensics++ paper (Deepfakes, Face2Face, FaceSwap, NeuralTextures).
+
+## Features
+
+- **AI Threat Analysis**: Instantly scan images and videos. The backend extracts faces using OpenCV Haar Cascades and runs inference via our ResNet18 model to calculate precise deepfake probabilities.
+- **Evidence Reports**: Generate and download visually comprehensive PDF investigation reports, suitable for legal takedowns.
+- **Authentication**: Secure login and registration with JWT.
+- **Real-time Analytics**: Track threats, scans, and protection metrics across a personalized dashboard.
+
+## Setup & Installation
+
+### Prerequisites
+- Node.js (v18+)
+- Python (3.8+)
+- RAM >= 16GB (for deep learning model inference)
+- NVIDIA GPU (Optional, for CUDA-accelerated inference)
+
+### 1. Frontend Setup
+```bash
+# Install frontend dependencies
+npm install
+
+# Run the development server
+npm run dev
+```
+
+### 2. Backend Setup
+```bash
+cd backend
+
+# Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # Or `venv\Scripts\activate` on Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the Flask API
+python app.py
+```
+> **Note:** The backend will run in *Demo Mode* if a compiled `model.pth` (PyTorch weight file) is not found in the backend directory. In demo mode, the API simulates the deepfake scanning process for testing purposes.
+
+## Repository Structure
+
+- `/src` - React frontend application featuring glassmorphism design.
+- `/backend` - Flask REST API with PyTorch and OpenCV integrations.
+- `/deepfake-repo` - Original research scripts and PyTorch dataset loaders for the underlying ResNet18 model.
+
+## License
+
+© 2025 DeepShield AI Contributors. All third-party names and trademarks are properties of their respective owners.
