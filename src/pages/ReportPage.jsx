@@ -20,9 +20,12 @@ const ReportPage = () => {
   const scanData = location.state?.scanData;
   const isDeepfake = scanData ? scanData.verdict === 'deepfake' : true;
   
-  const dynamicThreats = isDeepfake ? [
-    { id: 1, platform: 'Social Media Platform', url: 'socialmedia.com/profile/fake-xyz', score: scanData ? (scanData.deepfake_probability*100).toFixed(1) : 94.3, type: 'Profile Impersonation', risk: 'critical', date: new Date().toISOString().split('T')[0] },
-    { id: 2, platform: 'Video Sharing Site', url: 'videoshare.com/watch?v=deepfake123', score: scanData ? (scanData.deepfake_probability*92).toFixed(1) : 87.1, type: 'Deepfake Video', risk: 'high', date: new Date().toISOString().split('T')[0] },
+  // Show potential sources if the probability of a deepfake is > 35% (anything not cleanly 'real')
+  const shouldShowSources = scanData ? scanData.deepfake_probability > 0.35 : true;
+  
+  const dynamicThreats = shouldShowSources ? [
+    { id: 1, platform: 'Social Media Platform', url: 'socialmedia.com/profile/fake-xyz', score: scanData ? (scanData.deepfake_probability*100).toFixed(1) : 94.3, type: 'Profile Impersonation', risk: isDeepfake ? 'critical' : 'high', date: new Date().toISOString().split('T')[0] },
+    { id: 2, platform: 'Video Sharing Site', url: 'videoshare.com/watch?v=deepfake123', score: scanData ? (scanData.deepfake_probability*92).toFixed(1) : 87.1, type: 'Deepfake Video', risk: isDeepfake ? 'high' : 'medium', date: new Date().toISOString().split('T')[0] },
   ] : [];
   const [downloading, setDownloading] = useState(false);
   const reportRef = useRef(null);
