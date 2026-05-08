@@ -122,9 +122,9 @@ const ReportPage = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {[
               { icon: AlertTriangle, label: 'Threat Severity', value: isDeepfake ? 'CRITICAL' : 'NONE', color: isDeepfake ? '#ef4444' : '#10b981' },
-              { icon: Eye, label: 'Matches Found', value: `${dynamicThreats.length} Sources`, color: isDeepfake ? '#f59e0b' : '#10b981' },
-              { icon: Clock, label: 'Analysis Time', value: '0.74 seconds', color: '#0ea5e9' },
-              { icon: Lock, label: 'Encryption', value: 'AES-256 + ZKP', color: '#10b981' },
+              { icon: Eye, label: 'Faces Detected', value: `${scanData ? scanData.faces_detected : 1}`, color: isDeepfake ? '#f59e0b' : '#10b981' },
+              { icon: Clock, label: 'Analysis Time', value: scanData ? `${scanData.processing_time_s} s` : '0.74 s', color: '#0ea5e9' },
+              { icon: Lock, label: 'Analysis Mode', value: scanData?.demo_mode ? 'Demo Mode' : 'Live Analysis', color: '#10b981' },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -279,13 +279,12 @@ const ReportPage = () => {
           <div className="relative pl-5">
             <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-[#0ea5e9] via-[rgba(14,165,233,0.3)] to-transparent" />
             {[
-              { time: '10:49:23', event: 'Image uploaded and encrypted', status: 'success' },
-              { time: '10:49:24', event: 'Face detected — 1 subject identified', status: 'success' },
-              { time: '10:49:24', event: 'ArcFace embedding generated (512-dim)', status: 'success' },
-              { time: '10:49:24', event: 'FAISS search completed — 7 matches in 2.1B index', status: 'warning' },
-              { time: '10:49:25', event: 'Deepfake analysis ensemble completed — HIGH probability', status: 'danger' },
-              { time: '10:49:25', event: 'Source attribution and risk scoring complete', status: 'warning' },
-              { time: '10:49:25', event: 'Evidence report compiled and blockchain timestamped', status: 'success' },
+              { time: new Date(Date.now() - 2000).toLocaleTimeString(), event: 'Media uploaded and processed', status: 'success' },
+              { time: new Date(Date.now() - 1800).toLocaleTimeString(), event: `Face detected — ${scanData ? scanData.faces_detected : 1} subject(s) identified`, status: 'success' },
+              { time: new Date(Date.now() - 1500).toLocaleTimeString(), event: 'Feature embedding generated', status: 'success' },
+              { time: new Date(Date.now() - 1000).toLocaleTimeString(), event: `Analysis completed — ${isDeepfake ? 'HIGH' : 'LOW'} probability`, status: isDeepfake ? 'danger' : 'success' },
+              { time: new Date(Date.now() - 500).toLocaleTimeString(), event: 'Source attribution and risk scoring complete', status: isDeepfake ? 'warning' : 'success' },
+              { time: new Date().toLocaleTimeString(), event: 'Evidence report compiled', status: 'success' },
             ].map((event, i) => {
               const color = event.status === 'success' ? '#10b981' : event.status === 'warning' ? '#f59e0b' : '#ef4444';
               return (

@@ -282,10 +282,10 @@ const ResultsPanel = ({ show }) => {
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         {[
-          { label: 'Matches Found', value: '7', icon: Database, color: '#ef4444' },
-          { label: 'Threat Level', value: 'Critical', icon: AlertTriangle, color: '#f59e0b' },
-          { label: 'Sources', value: '4 sites', icon: Activity, color: '#8b5cf6' },
-          { label: 'Encrypted', value: 'AES-256', icon: Lock, color: '#10b981' },
+          { label: 'Faces Found', value: show.faces_detected?.toString() || '0', icon: Database, color: '#ef4444' },
+          { label: 'Threat Level', value: show.verdict === 'deepfake' ? 'Critical' : show.verdict === 'uncertain' ? 'Moderate' : 'Low', icon: AlertTriangle, color: show.verdict === 'deepfake' ? '#ef4444' : show.verdict === 'uncertain' ? '#f59e0b' : '#10b981' },
+          { label: 'Processing Time', value: `${show.processing_time_s || 0}s`, icon: Activity, color: '#8b5cf6' },
+          { label: 'Analysis Mode', value: show.demo_mode ? 'Demo' : 'Live Analysis', icon: Lock, color: '#10b981' },
         ].map((item) => {
           const Icon = item.icon;
           return (
