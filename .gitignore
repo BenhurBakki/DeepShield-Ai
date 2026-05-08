@@ -26,6 +26,8 @@ dist-ssr
 # Backend
 backend/venv
 backend/__pycache__
+backend/instance/
+*.db
 scratch
 deepfake-repo/.git
 deepfake-repo
