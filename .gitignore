@@ -24,6 +24,9 @@ dist-ssr
 *.sw?
 
 # Backend
+venv/
+__pycache__/
+.pytest_cache/
 backend/venv
 backend/__pycache__
 backend/instance/

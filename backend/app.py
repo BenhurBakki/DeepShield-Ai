@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import base64
 import io
@@ -88,14 +88,14 @@ if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'deepshield-super-secret-key')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'deepshield-super-secret-key-minimum-32-bytes-long')
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {
@@ -112,7 +112,7 @@ class ScanHistory(db.Model):
     real_probability = db.Column(db.Float, nullable=False)
     verdict = db.Column(db.String(50), nullable=False)
     faces_detected = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {
@@ -241,7 +241,7 @@ def login():
         
     token = jwt.encode({
         'user_id': user.id,
-        'exp': datetime.utcnow() + timedelta(days=7)
+        'exp': datetime.now(timezone.utc) + timedelta(days=7)
     }, app.config['SECRET_KEY'], algorithm="HS256")
     
     return jsonify({
