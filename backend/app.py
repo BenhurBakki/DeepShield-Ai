@@ -151,8 +151,12 @@ def detect_faces_opencv(image_bytes):
 def run_model(image_bytes):
     """Run the ResNet18 model on image bytes, return (real_prob, fake_prob)."""
     if not TORCH_AVAILABLE or not MODEL_LOADED:
-        # Demo mode: return simulated values
+        # Demo mode: return simulated values (deterministic based on image hash)
+        import hashlib
+        h = hashlib.md5(image_bytes).hexdigest()
+        random.seed(int(h[:8], 16))
         fake_prob = round(random.uniform(0.1, 0.95), 4)
+        random.seed() # reset seed
         return round(1 - fake_prob, 4), fake_prob
 
     from PIL import Image
@@ -191,8 +195,12 @@ def run_model(image_bytes):
     if not isinstance(probs, list):
         probs = [probs]
 
-    # probs[0] = real, probs[1] = fake (training convention)
-    return round(probs[0], 4), round(probs[1], 4)
+    # PyTorch ImageFolder sorts alphabetically: 0 = Fake/Deepfake, 1 = Real
+    # Therefore, probs[0] is fake, probs[1] is real
+    fake_prob = probs[0]
+    real_prob = probs[1]
+    
+    return round(real_prob, 4), round(fake_prob, 4)
 
 
 def token_required(f):
