@@ -71,6 +71,10 @@ DeepShield AI is deployed using a secure, scalable AWS architecture:
 - **Environment**: Python 3.11 / Amazon Linux 2023.
 
 
+### Production Access
+- **Frontend**: Accessible via the Amplify generated URL or `ben10.tech` (once DNS propagates).
+- **Backend**: API requests are routed through the CloudFront distribution `dejvzlgtkqd2u.cloudfront.net`.
+
 ## Repository Structure
 
 - `/src` - React frontend application featuring glassmorphism design.
