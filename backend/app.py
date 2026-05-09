@@ -257,7 +257,12 @@ def login():
         'user': user.to_dict()
     }), 200
 
+@app.route("/", methods=["GET"])
+def root():
+    return jsonify({"status": "ok", "service": "DeepShield AI Backend"}), 200
+
 @app.route("/api/health", methods=["GET"])
+
 def health():
     return jsonify({
         "status": "ok",
