@@ -348,7 +348,7 @@ const DashboardPage = () => {
       const isVideo = file.type.startsWith('video');
       const endpoint = isVideo ? '/api/detect_video' : '/api/detect';
       
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const API_URL = import.meta.env.VITE_API_URL || '';
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         body: formData,
