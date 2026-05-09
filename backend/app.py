@@ -136,16 +136,19 @@ def detect_faces_opencv(image_bytes):
     """Returns bounding boxes of faces found."""
     if not OPENCV_AVAILABLE:
         return []
-    import numpy as np
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
-    )
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-    return [{"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
-            for (x, y, w, h) in faces]
+    try:
+        import numpy as np
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        face_cascade = cv2.CascadeClassifier(
+            cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
+        )
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        return [{"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
+                for (x, y, w, h) in faces]
+    except ImportError:
+        return []
 
 
 def run_model(image_bytes):
