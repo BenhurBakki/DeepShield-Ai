@@ -20,8 +20,10 @@ const ReportPage = () => {
   const scanData = location.state?.scanData;
   const isDeepfake = scanData ? scanData.verdict === 'deepfake' : true;
   
-  // Show potential sources if the probability of a deepfake is > 35% (anything not cleanly 'real')
-  const shouldShowSources = scanData ? scanData.deepfake_probability > 0.35 : true;
+  // Always show sources for uncertain or deepfake verdicts, or any probability > 35%
+  const shouldShowSources = scanData
+    ? (scanData.deepfake_probability > 0.35 || scanData.verdict !== 'real')
+    : true;
   
   // Generate pseudo-random deterministic sources based on the score
   const platforms = ['Social Media Platform', 'Video Sharing Site', 'Image Board', 'Data Broker Site', 'News Aggregator'];

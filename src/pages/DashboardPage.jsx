@@ -239,9 +239,20 @@ const ResultsPanel = ({ show }) => {
     </div>
   );
 
+  // Error state
+  if (show._error) return (
+    <div className="glass-card rounded-2xl p-6 flex flex-col items-center justify-center min-h-[200px] text-center border border-red-500/20">
+      <AlertTriangle size={28} className="text-red-400 mb-3" />
+      <p className="text-sm font-bold text-red-400 mb-1">Scan Failed</p>
+      <p className="text-xs text-slate-500">{show.message}</p>
+      <p className="text-[10px] text-slate-600 mt-3">Make sure the backend server is running and reachable.</p>
+    </div>
+  );
+
   const deepfakeProb = (show.deepfake_probability * 100).toFixed(1);
   const realProb = (show.real_probability * 100).toFixed(1);
   const isDeepfake = show.verdict === 'deepfake';
+
 
   const results = [
     { label: 'Deepfake Probability', value: `${deepfakeProb}%`, color: isDeepfake ? '#ef4444' : '#f59e0b', level: show.deepfake_probability * 100 },
@@ -363,15 +374,14 @@ const DashboardPage = () => {
       if (response.ok) {
         setShowResults(data);
       } else {
-        console.error("Scan error:", data.error);
-        setShowResults(null);
+        setShowResults({ _error: true, message: data.error || 'Detection failed. Please try again.' });
       }
     } catch (error) {
       clearInterval(intervalRef.current);
       console.error("API error:", error);
       setProgress(100);
       setCurrentStep(5);
-      setShowResults(null);
+      setShowResults({ _error: true, message: error.message || 'Could not reach the detection server. Please check your connection or try again.' });
     }
     setScanning(false);
   };
