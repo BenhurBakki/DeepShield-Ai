@@ -56,7 +56,18 @@ pip install -r requirements.txt
 # Start the Flask API
 python app.py
 ```
-> **Note:** The backend will run in *Demo Mode* if a compiled `model.pth` (PyTorch weight file) is not found in the backend directory. In demo mode, the API simulates the deepfake scanning process for testing purposes.
+## Deployment Architecture
+
+DeepShield AI is deployed using a secure, scalable AWS architecture:
+- **Frontend**: Hosted on **AWS Amplify** with automated CI/CD.
+- **Backend API**: Running on **AWS Elastic Beanstalk** (Python Platform).
+- **Security Bridge**: An **AWS CloudFront** distribution acts as a secure HTTPS-to-HTTP proxy to resolve Mixed Content restrictions.
+- **Routing**: Amplify utilizes Reverse Proxy rewrites (`/api/*`) to securely route traffic through the CloudFront bridge to the backend.
+
+### Production Status
+- **Auth/Scanning**: Fully functional via secure proxying.
+- **Environment**: Python 3.11 / Amazon Linux 2023.
+
 
 ## Repository Structure
 
