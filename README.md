@@ -18,12 +18,14 @@ The underlying model research utilizes two major data sources:
 
 When a model is trained on a combination of both datasets, it learns to detect both real-world manipulation techniques as well as the other synthetic methods mentioned in the FaceForensics++ paper (Deepfakes, Face2Face, FaceSwap, NeuralTextures).
 
-## Features
+## Key Features
 
-- **AI Threat Analysis**: Instantly scan images and videos. The backend extracts faces using OpenCV Haar Cascades and runs inference via our ResNet18 model to calculate precise deepfake probabilities.
-- **Evidence Reports**: Generate and download visually comprehensive PDF investigation reports, suitable for legal takedowns.
-- **Authentication**: Secure login and registration with JWT.
-- **Real-time Analytics**: Track threats, scans, and protection metrics across a personalized dashboard.
+- **Proactive AI Threat Analysis**: Instantly scan images and videos. The backend extracts faces using OpenCV Haar Cascades and runs inference via our ResNet18 model to calculate precise deepfake probabilities.
+- **Dynamic Evidence Reports**: Generate and download visually comprehensive PDF investigation reports with cryptographic signatures, suitable for legal and corporate takedowns.
+- **Enterprise-grade Authentication**: Secure login and registration with JWT (JSON Web Tokens) and secure session management.
+- **Interactive Global Dashboard**: Track threats, scan history, and protection metrics across a personalized, high-performance dashboard.
+- **Secure Cloud Proxying**: Advanced HTTPS-to-HTTP bridging via AWS CloudFront for secure, encrypted communication between frontend and backend.
+
 
 ## Setup & Installation
 
