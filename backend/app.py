@@ -19,6 +19,13 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
+# ─── Optional: Reverse Image Search (SerpApi Yandex) ─────────────────────────
+try:
+    from reverse_image_search import find_morphed_image_sources
+    REVERSE_SEARCH_AVAILABLE = True
+except ImportError:
+    REVERSE_SEARCH_AVAILABLE = False
+
 # ─── Security Configuration ───────────────────────────────────────────────────
 # STRICT: Secret key must be provided in production environment
 SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -461,6 +468,15 @@ def detect():
         print(f"[ERROR] Failed to save to database: {e}")
         db.session.rollback()
 
+    # ─── Reverse Image Search (SerpApi Yandex) ────────────────────────────────
+    image_sources = []
+    run_reverse_search = request.args.get("reverse_search", "false").lower() == "true"
+    if REVERSE_SEARCH_AVAILABLE and run_reverse_search:
+        try:
+            image_sources = find_morphed_image_sources(image_bytes)
+        except Exception as e:
+            print(f"[WARN] Reverse image search failed: {e}")
+
     return jsonify({
         "deepfake_probability": fake_prob,
         "real_probability": real_prob,
@@ -474,7 +490,8 @@ def detect():
             "embedding_dimension": len(embedding),
             "similar_threats_found": len(similar_threats),
             "top_matches": similar_threats
-        }
+        },
+        "image_sources": image_sources,
     })
 
 
