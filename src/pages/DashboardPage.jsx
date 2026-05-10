@@ -295,19 +295,37 @@ const ResultsPanel = ({ show }) => {
         {[
           { label: 'Faces Found', value: show.faces_detected?.toString() || '0', icon: Database, color: '#ef4444' },
           { label: 'Threat Level', value: show.verdict === 'deepfake' ? 'Critical' : show.verdict === 'uncertain' ? 'Moderate' : 'Low', icon: AlertTriangle, color: show.verdict === 'deepfake' ? '#ef4444' : show.verdict === 'uncertain' ? '#f59e0b' : '#10b981' },
-          { label: 'Processing Time', value: `${show.processing_time_s || 0}s`, icon: Activity, color: '#8b5cf6' },
+          { label: 'Processing Time', value: show.processing_time || `${show.processing_time_s || 0}s`, icon: Activity, color: '#8b5cf6' },
           { label: 'Analysis Mode', value: show.demo_mode ? 'Demo' : 'Live Analysis', icon: Lock, color: '#10b981' },
         ].map((item) => {
           const Icon = item.icon;
           return (
             <div key={item.label} className="rounded-xl p-3 text-center" style={{ background: `${item.color}0d`, border: `1px solid ${item.color}25` }}>
               <Icon size={14} className="mx-auto mb-1.5" style={{ color: item.color }} />
-              <div className="text-sm font-bold" style={{ color: item.color }}>{item.value}</div>
-              <div className="text-[10px] text-slate-500">{item.label}</div>
+              <div className="text-sm font-bold text-white">{item.value}</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-tight">{item.label}</div>
             </div>
           );
         })}
       </div>
+
+      {/* Vector Similarity Search Results (FAISS/FaceNet) */}
+      {show.vector_search && show.vector_search.top_matches && show.vector_search.top_matches.length > 0 && (
+        <div className="mb-4 p-4 rounded-xl bg-[rgba(139,92,246,0.05)] border border-[rgba(139,92,246,0.2)]">
+          <div className="flex items-center gap-2 mb-3 text-[#8b5cf6]">
+            <Database size={14} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Similar Threats (Vector Search)</span>
+          </div>
+          <div className="space-y-2">
+            {show.vector_search.top_matches.map((match, idx) => (
+              <div key={idx} className="flex items-center justify-between text-[11px] py-1 border-b border-[rgba(255,255,255,0.05)] last:border-0">
+                <span className="text-slate-400 font-mono">DS-{match.distance.toString().slice(2, 8)}</span>
+                <span className="text-[#8b5cf6] font-medium">L2 Match: {match.distance.toFixed(4)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Link to="/report" state={{ scanData: show }} id="view-report-btn" className="btn-primary w-full justify-center text-sm">
         <FileText size={14} /> View Full Evidence Report
@@ -579,6 +597,3 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
-// drag-drop scan upload
-// live processing animation
-// threat alerts analytics tabs
