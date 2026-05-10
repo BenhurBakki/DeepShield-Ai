@@ -244,6 +244,8 @@ def detect_faces_opencv(image_bytes):
         import numpy as np
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is None:
+            return []
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         face_cascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
