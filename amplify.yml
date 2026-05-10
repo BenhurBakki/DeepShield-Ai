@@ -43,3 +43,5 @@
     }
   ]
 }
+# Trigger rebuild after manual console configuration fixes.
+
