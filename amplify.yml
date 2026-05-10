@@ -43,5 +43,5 @@
     }
   ]
 }
-# Final trigger after manual console redirect fixes.
+# Final build after WAF and Console fixes.
 
