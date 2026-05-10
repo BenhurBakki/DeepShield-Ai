@@ -75,6 +75,12 @@ DeepShield AI is deployed using a secure, scalable AWS architecture:
 - **Frontend**: Accessible via the Amplify generated URL or `ben10.tech` (once DNS propagates).
 - **Backend**: API requests are routed through the CloudFront distribution `dejvzlgtkqd2u.cloudfront.net`.
 
+### Technical Refinements (v13+)
+- **FAISS Vector Engine**: High-performance L2 similarity search for facial threat matching.
+- **512-dim Embeddings**: Facial features extracted via FaceNet/ArcFace compatible pipeline.
+- **Strict Security**: Environment-only SECRET_KEY and 16MB file validation.
+- **Deployment**: Secure HTTPS-to-HTTP proxying via CloudFront + Elastic Beanstalk.
+
 ## Repository Structure
 
 - `/src` - React frontend application featuring glassmorphism design.
