@@ -383,11 +383,20 @@ const DashboardPage = () => {
         body: formData,
       });
       
-      const data = await response.json();
-      
       clearInterval(intervalRef.current);
       setProgress(100);
       setCurrentStep(5);
+
+      const contentType = response.headers.get("content-type");
+      let data;
+      
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error("Non-JSON response:", text);
+        throw new Error(response.status === 404 ? 'Backend endpoint not found (404).' : `Server returned an unexpected response (${response.status}).`);
+      }
       
       if (response.ok) {
         setShowResults(data);
@@ -399,7 +408,15 @@ const DashboardPage = () => {
       console.error("API error:", error);
       setProgress(100);
       setCurrentStep(5);
-      setShowResults({ _error: true, message: error.message || 'Could not reach the detection server. Please check your connection or try again.' });
+      
+      let msg = error.message;
+      if (msg.includes('Unexpected token') || msg.includes('is not valid JSON')) {
+        msg = "The server returned an invalid response. This usually happens when the backend is misconfigured or down.";
+      } else if (msg.includes('Failed to fetch')) {
+        msg = "Could not reach the detection server. Please check your connection or backend status.";
+      }
+      
+      setShowResults({ _error: true, message: msg });
     }
     setScanning(false);
   };
