@@ -22,8 +22,11 @@ try:
     
     print("[INFO] Core dependencies loaded successfully.")
 except Exception as startup_error:
+    # EMERGENCY RESCUE APP: Stay alive and report the error!
     from flask import Flask, jsonify
+    from flask_cors import CORS
     application = Flask(__name__)
+    CORS(application) # Allow all origins for the rescue app
     @application.route("/", defaults={"path": ""})
     @application.route("/<path:path>")
     def rescue(path):
@@ -35,10 +38,10 @@ except Exception as startup_error:
     print(f"[CRITICAL] Startup failed: {startup_error}")
 
 # ─── App Initialization ──────────────────────────────────────────────────────
-VERSION = "1.0.6-rebuild"
+VERSION = "1.0.7-cors-hardened"
 application = Flask(__name__)
 app = application
-CORS(application, resources={r"/api/*": {"origins": "*"}})
+CORS(application) # Global CORS unlock
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'deepshield-fallback-secure-key-2024')
 app.config['SECRET_KEY'] = SECRET_KEY
