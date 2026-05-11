@@ -718,11 +718,23 @@ def _run_async_search(task_id, img_bytes):
         if isinstance(results, list) and len(results) > 0 and "_error" in results[0]:
              _SEARCH_TASKS[task_id] = {"status": "failed", "error": results[0]["message"]}
         else:
+             # Frontend expects: { url, source, title, thumbnail }
+             matches = []
+             if isinstance(results, list):
+                 for r in results:
+                     matches.append({
+                         "url": r.get("link", ""),
+                         "source": r.get("website_name", "Source"),
+                         "title": r.get("title") or r.get("website_name") or "External Match",
+                         "thumbnail": r.get("thumbnail", ""),
+                         "type": "visual_match"
+                     })
+
              _SEARCH_TASKS[task_id] = {
                  "status": "completed", 
                  "results": {
-                     "matches": results if isinstance(results, list) else [],
-                     "total": len(results) if isinstance(results, list) else 0
+                     "matches": matches,
+                     "total": len(matches)
                  }
              }
     except Exception as e:

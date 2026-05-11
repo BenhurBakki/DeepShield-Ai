@@ -107,10 +107,16 @@ def find_morphed_image_sources(image_input, api_key: str = None, max_results: in
         output = []
         for match in visual_matches[:max_results]:
             website_name = match.get("source") or match.get("title") or "Source"
+            title = match.get("title") or match.get("source") or "Visual Match"
             link = match.get("link") or ""
             thumbnail = match.get("thumbnail") or ""
             if link:
-                output.append({"website_name": website_name, "link": link, "thumbnail": thumbnail})
+                output.append({
+                    "website_name": website_name,
+                    "title": title,
+                    "link": link, 
+                    "thumbnail": thumbnail
+                })
         return output
 
     except Exception as e:
