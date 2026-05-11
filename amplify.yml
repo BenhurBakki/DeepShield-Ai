@@ -20,7 +20,7 @@
   "rewrites": [
     {
       "source": "/api/<*>",
-      "target": "http://Deepshield-backend-env-1.eba-xrtbwy37.us-east-1.elasticbeanstalk.com/api/<*>",
+      "target": "http://deepshield-backend-env-1.eba-xrtbwy37.us-east-1.elasticbeanstalk.com/api/<*>",
       "status": "200"
     },
     {

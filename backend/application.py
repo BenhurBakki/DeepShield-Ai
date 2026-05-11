@@ -106,18 +106,26 @@ class FacialExtractor:
     """
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = None
+        self.mtcnn = None
+        self.loaded = False
+
+    def _load(self):
+        if self.loaded: return True
         try:
             # Load pre-trained FaceNet model
             self.model = InceptionResnetV1(pretrained='vggface2').eval().to(self.device)
             self.mtcnn = MTCNN(device=self.device)
             self.loaded = True
             print("[INFO] FaceNet model loaded successfully.")
+            return True
         except Exception as e:
             print(f"[WARNING] Could not load FaceNet model: {e}. Falling back to simulation.")
             self.loaded = False
+            return False
 
     def get_embedding(self, image_bytes):
-        if not self.loaded:
+        if not self._load():
             # Fallback to deterministic hash-based embedding for consistency
             h = hashlib.sha256(image_bytes).digest()
             np.random.seed(int.from_bytes(h[:8], 'little'))
@@ -171,16 +179,25 @@ try:
 
     MODEL_PATH = os.environ.get("MODEL_PATH", "model.pth")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = None
+    MODEL_LOADED = False
 
-    if os.path.exists(MODEL_PATH):
-        model = create_model()
-        model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
-        model.eval()
-        MODEL_LOADED = True
-        print(f"[INFO] Model loaded from {MODEL_PATH}")
-    else:
-        MODEL_LOADED = False
-        print("[WARN] No model file found — running in demo mode")
+    def get_model():
+        global model, MODEL_LOADED
+        if model is not None:
+            return model
+        try:
+            if os.path.exists(MODEL_PATH):
+                model = create_model()
+                model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+                model.eval()
+                MODEL_LOADED = True
+                print(f"[INFO] Model loaded from {MODEL_PATH}")
+            else:
+                print("[WARN] No model file found — running in demo mode")
+        except Exception as e:
+            print(f"[ERROR] Failed to load model: {e}")
+        return model
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -320,9 +337,19 @@ def run_model(image_bytes):
                 cropped_face = cv2.cvtColor(cropped_face, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cropped_face)
 
+    m = get_model()
+    if m is None:
+        # Fallback to demo mode if model couldn't be loaded
+        import hashlib
+        h = hashlib.md5(image_bytes).hexdigest()
+        random.seed(int(h[:8], 16))
+        fake_prob = round(random.uniform(0.1, 0.95), 4)
+        random.seed()
+        return round(1 - fake_prob, 4), fake_prob
+
     tensor = transform(img).unsqueeze(0).to(device)
     with torch.no_grad():
-        logits = model(tensor)
+        logits = m(tensor)
         probs = torch.softmax(logits, dim=1).squeeze().tolist()
     
     # Ensure probs is a list even if batch size changes somehow
