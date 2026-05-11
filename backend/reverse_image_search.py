@@ -181,6 +181,16 @@ def find_morphed_image_sources(
     Search for websites where the supplied image is appearing using
     SerpApi → Google Lens reverse image search.
     """
+    if not api_key:
+        error_msg = "[SerpApi] No API key found. Please set SERPAPI_KEY."
+        print(error_msg)
+        return [{"_error": True, "message": error_msg}]
+
+    # ── Step 0: Crop to face (if bytes) ──────────────────────────────────
+    # This improves accuracy by focusing Lens on facial features.
+    if isinstance(image_input, bytes):
+        image_input = _crop_to_face(image_input)
+
     # ── Step 1: Resolve Public URL ────────────────────────────────────────
     image_url: Optional[str] = None
 
