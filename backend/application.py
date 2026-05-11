@@ -181,8 +181,8 @@ except ImportError:
 
 # ─── App setup ────────────────────────────────────────────────────────────────
 VERSION = "1.0.4-lens-harden"
-app = Flask(__name__)
-CORS(app)
+application = Flask(__name__)
+CORS(application)
 
 # ─── Database Setup ───────────────────────────────────────────────────────────
 # Use SQLite by default if no DATABASE_URL is provided, else use PostgreSQL
@@ -331,7 +331,7 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
-@app.route('/api/register', methods=['POST'])
+@application.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
     if not data or not data.get('username') or not data.get('email') or not data.get('password'):
@@ -347,7 +347,7 @@ def register():
     
     return jsonify({'message': 'User created successfully'}), 201
 
-@app.route('/api/login', methods=['POST'])
+@application.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     if not data or not data.get('email') or not data.get('password'):
@@ -367,11 +367,11 @@ def login():
         'user': user.to_dict()
     }), 200
 
-@app.route("/", methods=["GET"])
+@application.route("/", methods=["GET"])
 def root():
     return jsonify({"status": "ok", "service": "DeepShield AI Backend"}), 200
 
-@app.route("/api/health", methods=["GET"])
+@application.route("/api/health", methods=["GET"])
 
 def health():
     return jsonify({
@@ -384,7 +384,7 @@ def health():
     })
 
 
-@app.route("/api/detect", methods=["POST"])
+@application.route("/api/detect", methods=["POST"])
 def detect():
     """
     Accept an image (multipart OR base64 JSON) and return:
@@ -511,7 +511,7 @@ def detect():
     })
 
 
-@app.route("/api/batch", methods=["POST"])
+@application.route("/api/batch", methods=["POST"])
 def batch_detect():
     """Accept multiple images and return results for each."""
     files = request.files.getlist("files")
@@ -550,7 +550,7 @@ def batch_detect():
 
     return jsonify({"results": results, "total": len(results)})
 
-@app.route("/api/detect_video", methods=["POST"])
+@application.route("/api/detect_video", methods=["POST"])
 def detect_video():
     """
     Accept a video file and return:
@@ -657,7 +657,7 @@ def detect_video():
         "image_sources": [] # Video doesn't support trace yet
     })
 
-@app.route("/api/history", methods=["GET"])
+@application.route("/api/history", methods=["GET"])
 def get_history():
     """Return the recent scan history from the database."""
     limit = request.args.get("limit", 50, type=int)
@@ -667,4 +667,4 @@ def get_history():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    application.run(host="0.0.0.0", port=port, debug=True)

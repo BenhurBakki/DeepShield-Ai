@@ -15,4 +15,4 @@ COPY . .
 
 # Use port 80 for Elastic Beanstalk
 EXPOSE 80
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--timeout", "120", "application:application"]
