@@ -136,16 +136,37 @@ def _upload_to_catbox(image_bytes: bytes) -> Optional[str]:
 def _resolve_public_url(image_bytes: bytes) -> Optional[str]:
     """
     Tries multiple temporary hosting services to get a public URL for the image.
+    Resizes the image if it's too large to ensure reliable uploads.
     """
-    print("[Trace] Attempting to host image for SerpApi...")
+    print(f"[Trace] Attempting to host image (size: {len(image_bytes)} bytes) for SerpApi...")
     
-    # Try TmpFiles first
+    # ── Step 0: Compress if too large (> 2MB) ────────────────────────────
+    if len(image_bytes) > 2 * 1024 * 1024:
+        print("[Trace] Image too large, compressing...")
+        try:
+            if OPENCV_AVAILABLE:
+                nparr = np.frombuffer(image_bytes, np.uint8)
+                img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                if img is not None:
+                    # Resize to 800px max dimension
+                    h, w = img.shape[:2]
+                    if max(h, w) > 800:
+                        scale = 800 / max(h, w)
+                        img = cv2.resize(img, (int(w * scale), int(h * scale)))
+                    success, buffer = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+                    if success:
+                        image_bytes = buffer.tobytes()
+                        print(f"[Trace] Compressed to {len(image_bytes)} bytes")
+        except Exception as e:
+            print(f"[Trace] Compression failed: {e}")
+
+    # ── Step 1: Try TmpFiles first ───────────────────────────────────────
     url = _upload_to_tmpfiles(image_bytes)
     if url: 
         print(f"[Trace] Hosted on TmpFiles: {url}")
         return url
         
-    # Fallback to Catbox
+    # ── Step 2: Fallback to Catbox ───────────────────────────────────────
     url = _upload_to_catbox(image_bytes)
     if url:
         print(f"[Trace] Hosted on Catbox: {url}")

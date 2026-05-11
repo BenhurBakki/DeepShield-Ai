@@ -459,15 +459,18 @@ const DashboardPage = () => {
       });
       
       const data = await response.json();
+      console.log("Trace API Response:", data);
       
       if (response.ok) {
         setTraceResults(data.image_sources || []);
       } else {
-        setTraceResults({ _error: true, message: data.error || 'Trace failed. Please try again.' });
+        const errorMsg = data.error || 'Trace failed. Please try again.';
+        console.error("Trace API Error:", errorMsg);
+        setTraceResults({ _error: true, message: errorMsg });
       }
     } catch (error) {
-      console.error("Trace API error:", error);
-      setTraceResults({ _error: true, message: "Could not connect to the trace server." });
+      console.error("Trace Connection Error:", error);
+      setTraceResults({ _error: true, message: "Could not connect to the trace server. Check your internet or backend status." });
     }
     setTracing(false);
   };
