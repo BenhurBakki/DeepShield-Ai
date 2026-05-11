@@ -180,6 +180,7 @@ except ImportError:
     OPENCV_AVAILABLE = False
 
 # ─── App setup ────────────────────────────────────────────────────────────────
+VERSION = "1.0.4-lens-harden"
 app = Flask(__name__)
 CORS(app)
 
@@ -375,6 +376,7 @@ def root():
 def health():
     return jsonify({
         "status": "ok",
+        "version": VERSION,
         "model_loaded": MODEL_LOADED,
         "torch_available": TORCH_AVAILABLE,
         "opencv_available": OPENCV_AVAILABLE,
@@ -489,6 +491,8 @@ def detect():
         "faces_detected": faces_detected,
         "face_boxes": face_boxes,
         "processing_time": f"{elapsed}s",
+        "processing_time_s": elapsed, # Legacy compatibility
+        "version": VERSION,
         "demo_mode": not MODEL_LOADED,
         "vector_search": {
             "status": "success",
@@ -640,8 +644,10 @@ def detect_video():
         "verdict": verdict,
         "faces_detected": total_faces,
         "processing_time_s": elapsed,
+        "version": VERSION,
         "demo_mode": not MODEL_LOADED,
-        "frames_analyzed": len(fake_probs)
+        "frames_analyzed": len(fake_probs),
+        "image_sources": [] # Video doesn't support trace yet
     })
 
 @app.route("/api/history", methods=["GET"])
