@@ -20,22 +20,18 @@ try:
     from werkzeug.security import generate_password_hash, check_password_hash
     from werkzeug.utils import secure_filename
 except Exception as startup_error:
-    # EMERGENCY RESCUE APP: If dependencies are missing, keep the server alive!
+    # EMERGENCY RESCUE APP: Stay alive and report the error!
     from flask import Flask, jsonify
     application = Flask(__name__)
     @application.route("/", defaults={"path": ""})
     @application.route("/<path:path>")
     def rescue(path):
         return jsonify({
-            "error": "Backend Dependency Failure",
-            "details": str(startup_error),
-            "suggestion": "Check requirements.txt and system libraries."
+            "status": "rescue_mode",
+            "error": "Startup Failure",
+            "details": str(startup_error)
         }), 500
-    if __name__ == "__main__":
-        application.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-    # Stop execution here to prevent further crashes
-    import sys
-    sys.exit(0)
+    # No sys.exit here! Let Gunicorn use this rescue app.
 
 # ─── Optional: Reverse Image Search (SerpApi Yandex) ─────────────────────────
 try:
