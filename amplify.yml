@@ -31,7 +31,7 @@
   "rewrites": [
     {
       "source": "/api/<*>",
-      "target": "https://dejvzlgtkqd2u.cloudfront.net/api/<*>",
+      "target": "http://deepshield-backend-env-1.eba-xrtawy57.us-east-1.elasticbeanstalk.com/api/<*>",
       "status": "200",
       "condition": null
     },
