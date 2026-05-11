@@ -150,31 +150,26 @@ class FacialExtractor:
 extractor = FacialExtractor()
 
 # ─── Optional: load real model if available ───────────────────────────────────
-try:
-    import torch
-    import torchvision.transforms as transforms
-    from PIL import Image
+def create_model(use_hidden_layer=True, dropout=0.5):
     import torchvision.models as models
     import torch.nn as nn
-
-    def create_model(use_hidden_layer=True, dropout=0.5):
-        model = models.resnet18(pretrained=False)
-        in_features = model.fc.in_features
-        if use_hidden_layer:
-            model.fc = nn.Sequential(
-                nn.Dropout(dropout),
-                nn.Linear(in_features, in_features // 2),
-                nn.ReLU(),
-                nn.BatchNorm1d(in_features // 2),
-                nn.Dropout(dropout),
-                nn.Linear(in_features // 2, 2)
-            )
-        else:
-            model.fc = nn.Sequential(
-                nn.Dropout(dropout),
-                nn.Linear(in_features, 2)
-            )
-        return model
+    model = models.resnet18(pretrained=False)
+    in_features = model.fc.in_features
+    if use_hidden_layer:
+        model.fc = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(in_features, in_features // 2),
+            nn.ReLU(),
+            nn.BatchNorm1d(in_features // 2),
+            nn.Dropout(dropout),
+            nn.Linear(in_features // 2, 2)
+        )
+    else:
+        model.fc = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(in_features, 2)
+        )
+    return model
 
 _GLOBAL_MODEL = None
 _MODEL_LOADED = False
