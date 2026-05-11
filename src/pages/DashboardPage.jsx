@@ -367,7 +367,7 @@ const TraceResultsPanel = ({ results, loading }) => {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-2xl p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
-          <Globe size={18} className="text-[#0ea5e9]" /> Global Trace Results
+          <Globe size={18} className="text-[#0ea5e9]" /> Global Trace Results <span className="text-[10px] opacity-30">v1.0.4</span>
         </h3>
         <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[rgba(14,165,233,0.1)] text-[#0ea5e9] border border-[rgba(14,165,233,0.2)]">
           {results.length} SOURCES FOUND
