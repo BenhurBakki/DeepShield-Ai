@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --retries 5 --no-progress-bar -r requirements.txt
 
-COPY app.py .
+COPY . .
 
 # Use port 80 for Elastic Beanstalk
 EXPOSE 80
