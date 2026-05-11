@@ -172,7 +172,8 @@ _SEARCH_TASKS = {}
 
 def _run_async_search(task_id, img_bytes):
     try:
-        results = find_morphed_image_sources(img_bytes)
+        api_key = os.environ.get("SERPAPI_KEY")
+        results = find_morphed_image_sources(img_bytes, api_key=api_key)
         _SEARCH_TASKS[task_id] = {"status": "completed", "results": results}
     except Exception as e:
         _SEARCH_TASKS[task_id] = {"status": "failed", "error": str(e)}
@@ -210,7 +211,16 @@ def face_trace_status(task_id):
 
 @app.route('/api/health')
 def health():
-    return jsonify({"status": "ok", "version": VERSION})
+    return jsonify({
+        "status": "ok", 
+        "version": VERSION,
+        "serpapi_active": bool(os.environ.get("SERPAPI_KEY")),
+        "modules": {
+            "reverse_search": REVERSE_SEARCH_AVAILABLE,
+            "torch": torch.__version__,
+            "faiss": True
+        }
+    })
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0', port=5000)
