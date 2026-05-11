@@ -112,8 +112,46 @@ def _upload_to_tmpfiles(image_bytes: bytes) -> Optional[str]:
                 return page_url.replace("tmpfiles.org/", "tmpfiles.org/dl/")
         return None
     except Exception as e:
-        print(f"[Trace] Temporary upload failed: {e}")
+        print(f"[Trace] TmpFiles upload failed: {e}")
         return None
+
+
+def _upload_to_catbox(image_bytes: bytes) -> Optional[str]:
+    """
+    Fallback upload to Catbox.moe.
+    """
+    url = "https://catbox.moe/user/api.php"
+    files = {"fileToUpload": ("image.jpg", image_bytes, "image/jpeg")}
+    data = {"reqtype": "fileupload"}
+    try:
+        response = requests.post(url, files=files, data=data, timeout=30)
+        if response.status_code == 200:
+            return response.text.strip()
+        return None
+    except Exception as e:
+        print(f"[Trace] Catbox upload failed: {e}")
+        return None
+
+
+def _resolve_public_url(image_bytes: bytes) -> Optional[str]:
+    """
+    Tries multiple temporary hosting services to get a public URL for the image.
+    """
+    print("[Trace] Attempting to host image for SerpApi...")
+    
+    # Try TmpFiles first
+    url = _upload_to_tmpfiles(image_bytes)
+    if url: 
+        print(f"[Trace] Hosted on TmpFiles: {url}")
+        return url
+        
+    # Fallback to Catbox
+    url = _upload_to_catbox(image_bytes)
+    if url:
+        print(f"[Trace] Hosted on Catbox: {url}")
+        return url
+        
+    return None
 
 
 def find_morphed_image_sources(
@@ -129,9 +167,7 @@ def find_morphed_image_sources(
     image_url: Optional[str] = None
 
     if isinstance(image_input, bytes):
-        # We no longer auto-crop to face here as it can reduce Google Lens's ability 
-        # to find exact matches by removing context.
-        image_url = _upload_to_tmpfiles(image_input)
+        image_url = _resolve_public_url(image_input)
     elif isinstance(image_input, str):
         if image_input.startswith("http://") or image_input.startswith("https://"):
             image_url = image_input
@@ -139,7 +175,7 @@ def find_morphed_image_sources(
             if not os.path.exists(image_input):
                 raise FileNotFoundError(f"Image not found: {image_input}")
             with open(image_input, "rb") as f:
-                image_url = _upload_to_tmpfiles(f.read())
+                image_url = _resolve_public_url(f.read())
     else:
         raise TypeError(f"Unsupported image_input type: {type(image_input)}")
 
