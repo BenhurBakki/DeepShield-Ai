@@ -1,23 +1,37 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta, timezone
-import os
-import base64
-import io
-import time
-import random
-import jwt
-import hashlib
-import numpy as np
-import faiss
-import torch
-import torchvision.transforms as transforms
-from PIL import Image
-from facenet_pytorch import InceptionResnetV1, MTCNN
-from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
+# ─── Bulletproof Startup ─────────────────────────────────────────────────────
+try:
+    from flask import Flask, request, jsonify
+    from flask_cors import CORS
+    from flask_sqlalchemy import SQLAlchemy
+    from datetime import datetime, timedelta, timezone
+    import os
+    import base64
+    import io
+    import time
+    import random
+    import jwt
+    import hashlib
+    import numpy as np
+    from functools import wraps
+    from werkzeug.security import generate_password_hash, check_password_hash
+    from werkzeug.utils import secure_filename
+except Exception as startup_error:
+    # EMERGENCY RESCUE APP: If dependencies are missing, keep the server alive!
+    from flask import Flask, jsonify
+    application = Flask(__name__)
+    @application.route("/", defaults={"path": ""})
+    @application.route("/<path:path>")
+    def rescue(path):
+        return jsonify({
+            "error": "Backend Dependency Failure",
+            "details": str(startup_error),
+            "suggestion": "Check requirements.txt and system libraries."
+        }), 500
+    if __name__ == "__main__":
+        application.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    # Stop execution here to prevent further crashes
+    import sys
+    sys.exit(0)
 
 # ─── Optional: Reverse Image Search (SerpApi Yandex) ─────────────────────────
 try:
