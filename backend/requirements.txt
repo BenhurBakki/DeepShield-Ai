@@ -1,16 +1,16 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-flask>=2.3.3
-flask-cors>=4.0.0
-Pillow>=10.0.1
-gunicorn>=21.2.0
-Werkzeug>=3.0.1
-Flask-SQLAlchemy>=3.1.1
-PyJWT>=2.8.0
-numpy>=1.26.0
-cryptography>=42.0.0
-torch
-torchvision
-opencv-python>=4.8.0
-faiss-cpu>=1.7.4
-facenet-pytorch>=2.5.3
-google-search-results>=2.4.2
+flask
+flask-cors
+flask-sqlalchemy
+Pillow
+gunicorn
+Werkzeug
+PyJWT
+numpy
+cryptography
+torch --index-url https://download.pytorch.org/whl/cpu
+torchvision --index-url https://download.pytorch.org/whl/cpu
+opencv-python-headless
+faiss-cpu
+facenet-pytorch
+google-search-results
+requests
