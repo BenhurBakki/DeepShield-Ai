@@ -496,12 +496,9 @@ const DashboardPage = () => {
 
   const handleTrace = async () => {
     if (!file) return;
-    setTracing(true);
-    setTraceResults(null);
-    setActive('trace');
-
-  const startTrace = async (file) => {
-    if (!file) return;
+    startTrace(file);
+  };
+  const startTrace = async (file: any) => {
     setTracing(true);
     setTraceResults(null);
     setActive('trace');
@@ -520,7 +517,6 @@ const DashboardPage = () => {
       console.log("Trace API Response:", data);
       
       if (response.ok) {
-        // Attach debug info to the results array if it exists so the UI can show it
         const sources = data.image_sources || [];
         if (data.debug_info) {
           sources._debug = data.debug_info;
