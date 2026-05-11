@@ -209,7 +209,7 @@ def find_morphed_image_sources(
         "engine": "google_lens",
         "url": image_url,
         "api_key": api_key,
-        "requests_timeout": 15 # Ensure we don't hit gateway timeout
+        "requests_timeout": 12 # Aggressive timeout for speed
     }
 
     try:
@@ -225,23 +225,11 @@ def find_morphed_image_sources(
         return [{"_error": True, "message": error_msg}]
 
     # ── Step 3: Extract Results ──────────────────────────────────────────
+    # Focus only on high-confidence visual matches to save processing time
     visual_matches = results.get("visual_matches", [])
 
     if not visual_matches:
-        # Fallback to Google Reverse Image Search if Lens has no visual matches
-        print("[SerpApi] No visual matches in Lens. Trying Google Reverse Image...")
-        params["engine"] = "google_reverse_image"
-        params["image_url"] = image_url
-        del params["url"]
-        try:
-            search = GoogleSearch(params)
-            res2 = search.get_dict()
-            visual_matches = res2.get("image_results", [])
-        except:
-            pass
-
-    if not visual_matches:
-        print("[SerpApi] No websites found containing this image.")
+        print("[SerpApi] No visual matches found in time.")
         return []
 
     output: List[Dict[str, str]] = []
