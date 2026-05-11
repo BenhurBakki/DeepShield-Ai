@@ -223,10 +223,15 @@ def health():
         "serpapi_active": bool(os.environ.get("SERPAPI_KEY")),
         "modules": {
             "reverse_search": REVERSE_SEARCH_AVAILABLE,
-            "torch": torch.__version__,
-            "faiss": True
+            "torch": torch.__version__ if AI_READY else "N/A",
+            "faiss": AI_READY
         }
     })
+
+print("\n" + "="*40)
+print("🚀 DEEPSHIELD STARTUP SUCCESSFUL")
+print(f"Version: {VERSION}")
+print("="*40 + "\n")
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0', port=5000)
