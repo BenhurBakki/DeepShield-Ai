@@ -182,6 +182,7 @@ except ImportError:
 # ─── App setup ────────────────────────────────────────────────────────────────
 VERSION = "1.0.4-lens-harden"
 application = Flask(__name__)
+app = application # Alias for compatibility
 CORS(application)
 
 # ─── Database Setup ───────────────────────────────────────────────────────────
