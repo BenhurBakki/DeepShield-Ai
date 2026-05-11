@@ -121,7 +121,7 @@ def _upload_to_catbox(image_bytes: bytes) -> Optional[str]:
     files = {"fileToUpload": ("image.jpg", image_bytes, "image/jpeg")}
     data = {"reqtype": "fileupload"}
     try:
-        response = requests.post(url, files=files, data=data, timeout=15)
+        response = requests.post(url, files=files, data=data, timeout=10)
         if response.status_code == 200:
             return response.text.strip()
         return None
@@ -132,40 +132,32 @@ def _upload_to_catbox(image_bytes: bytes) -> Optional[str]:
 
 def _resolve_public_url(image_bytes: bytes) -> Optional[str]:
     """
-    Tries multiple temporary hosting services to get a public URL for the image.
-    Resizes the image if it's too large to ensure reliable uploads.
+    Tries Catbox (fastest) to get a public URL for the image.
+    Uses aggressive timeouts to prevent gateway 502s.
     """
-    print(f"[Trace] Attempting to host image (size: {len(image_bytes)} bytes) for SerpApi...")
+    print(f"[Trace] Hosting image ({len(image_bytes)} bytes)...")
     
-    # ── Step 0: Compress if too large (> 2MB) ────────────────────────────
-    if len(image_bytes) > 2 * 1024 * 1024:
-        print("[Trace] Image too large, compressing...")
+    # ── Step 0: Compress if too large (> 1MB) ────────────────────────────
+    if len(image_bytes) > 1 * 1024 * 1024:
         try:
             if OPENCV_AVAILABLE:
                 nparr = np.frombuffer(image_bytes, np.uint8)
                 img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                 if img is not None:
-                    # Resize to 800px max dimension
                     h, w = img.shape[:2]
-                    if max(h, w) > 800:
-                        scale = 800 / max(h, w)
+                    if max(h, w) > 600:
+                        scale = 600 / max(h, w)
                         img = cv2.resize(img, (int(w * scale), int(h * scale)))
-                    success, buffer = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+                    success, buffer = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
                     if success:
                         image_bytes = buffer.tobytes()
-                        print(f"[Trace] Compressed to {len(image_bytes)} bytes")
         except Exception as e:
             print(f"[Trace] Compression failed: {e}")
 
-    # ── Step 1: Try TmpFiles first ───────────────────────────────────────
-    url = _upload_to_tmpfiles(image_bytes)
-    if url: 
-        print(f"[Trace] Hosted on TmpFiles: {url}")
-        return url
-        
-    # ── Step 2: Fallback to Catbox ───────────────────────────────────────
+    # ── Step 1: Try Catbox (High speed fallback) ─────────────────────────
+    # We use a 10s timeout here to ensure we don't hit the 30s Gateway limit
     url = _upload_to_catbox(image_bytes)
-    if url:
+    if url: 
         print(f"[Trace] Hosted on Catbox: {url}")
         return url
         
