@@ -115,7 +115,7 @@ const FaceTracePanel = () => {
 
     try {
       tick(15, 'Sending image to scan engine...');
-      const API_URL = import.meta.env.VITE_API_URL || '';
+      const API_URL = "http://Deepshield-backend-env-1.eba-xrtbwy37.us-east-1.elasticbeanstalk.com";
       const formData = new FormData();
       formData.append('file', file);
 
