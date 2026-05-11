@@ -1,11 +1,11 @@
 """
 reverse_image_search.py
 -----------------------
-Uses SerpApi's Yandex Images engine to find websites where a given image
+Uses SerpApi's Google Lens engine to find websites where a given image
 (local file or public URL) is currently appearing.
 
-Yandex is preferred for this use-case because it excels at finding
-visually similar / morphed / edited faces that other engines miss.
+Google Lens is preferred for this use-case because it excels at finding
+exact web matches and specific visual matches of faces online.
 
 Usage
 -----
@@ -38,6 +38,13 @@ try:
 except ImportError:
     SERPAPI_AVAILABLE = False
 
+try:
+    import cv2
+    import numpy as np
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+
 # ─── Configuration ────────────────────────────────────────────────────────────
 # Pull the key from environment so it is never hard-coded in source control.
 # Set SERPAPI_KEY as an environment variable (Elastic Beanstalk / .env / etc.)
@@ -47,24 +54,65 @@ _DEFAULT_API_KEY = os.environ.get(
 )
 
 
-def _upload_image_to_serpapi(image_bytes: bytes, api_key: str) -> Optional[str]:
+def _crop_to_face(image_bytes: bytes) -> bytes:
     """
-    Upload raw image bytes to SerpApi's file-upload endpoint.
-    Returns the temporary hosted URL that can be passed to Yandex Images.
+    Detects the primary face in the image and crops it with a margin.
+    This forces the search engine to focus on facial features rather than clothing/background.
     """
-    upload_url = "https://serpapi.com/images/upload"
+    if not OPENCV_AVAILABLE:
+        return image_bytes
     try:
-        response = requests.post(
-            upload_url,
-            files={"image": ("image.jpg", image_bytes, "image/jpeg")},
-            params={"api_key": api_key},
-            timeout=30,
+        # Convert bytes to OpenCV image
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is None: return image_bytes
+        
+        # Detect faces
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        face_cascade = cv2.CascadeClassifier(
+            cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
         )
-        response.raise_for_status()
-        data = response.json()
-        return data.get("url")  # SerpApi returns the hosted image URL
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        
+        if len(faces) > 0:
+            # Pick the largest face detected
+            faces = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
+            x, y, w, h = faces[0]
+            
+            # Add 40% margin to capture head shape/hair which helps with identity
+            margin = int(max(w, h) * 0.4)
+            y1 = max(0, y - margin)
+            y2 = min(img.shape[0], y + h + margin)
+            x1 = max(0, x - margin)
+            x2 = min(img.shape[1], x + w + margin)
+            
+            face_crop = img[y1:y2, x1:x2]
+            success, buffer = cv2.imencode('.jpg', face_crop)
+            if success:
+                return buffer.tobytes()
     except Exception as e:
-        print(f"[SerpApi] File upload failed: {e}")
+        print(f"[Trace] Face cropping failed: {e}")
+    return image_bytes
+
+
+def _upload_to_tmpfiles(image_bytes: bytes) -> Optional[str]:
+    """
+    Upload raw image bytes to tmpfiles.org for temporary public hosting.
+    Google Lens requires a publicly accessible URL to perform a search.
+    """
+    url = "https://tmpfiles.org/api/v1/upload"
+    files = {"file": ("image.jpg", image_bytes, "image/jpeg")}
+    try:
+        response = requests.post(url, files=files, timeout=30)
+        if response.status_code == 200:
+            data = response.json()
+            page_url = data.get("data", {}).get("url")
+            if page_url:
+                # Convert to direct download link
+                return page_url.replace("tmpfiles.org/", "tmpfiles.org/dl/")
+        return None
+    except Exception as e:
+        print(f"[Trace] Temporary upload failed: {e}")
         return None
 
 
@@ -75,48 +123,23 @@ def find_morphed_image_sources(
 ) -> List[Dict[str, str]]:
     """
     Search for websites where the supplied image is appearing using
-    SerpApi → Yandex Images reverse image search.
-
-    Parameters
-    ----------
-    image_input : str | bytes
-        • Local file path  – e.g. "/tmp/face.jpg"
-        • Public HTTPS URL – e.g. "https://cdn.example.com/face.jpg"
-        • Raw bytes        – image data read directly from memory
-    api_key : str
-        Your SerpApi secret key.  Defaults to the SERPAPI_KEY env var.
-    max_results : int
-        Maximum number of website entries to return (default 50).
-
-    Returns
-    -------
-    List[Dict[str, str]]
-        [{'website_name': 'example.com', 'link': 'https://example.com/...'}, ...]
-        Returns an empty list on error or when no matches are found.
+    SerpApi → Google Lens reverse image search.
     """
-    if not SERPAPI_AVAILABLE:
-        raise ImportError(
-            "serpapi package not installed. "
-            "Run: pip install google-search-results"
-        )
-
-    # ── Step 1: Resolve the image to a public URL ──────────────────────────
+    # ── Step 1: Resolve Public URL ────────────────────────────────────────
     image_url: Optional[str] = None
 
     if isinstance(image_input, bytes):
-        # Raw bytes → upload to SerpApi
-        image_url = _upload_image_to_serpapi(image_input, api_key)
-
+        # We no longer auto-crop to face here as it can reduce Google Lens's ability 
+        # to find exact matches by removing context.
+        image_url = _upload_to_tmpfiles(image_input)
     elif isinstance(image_input, str):
         if image_input.startswith("http://") or image_input.startswith("https://"):
-            # Already a public URL
             image_url = image_input
         else:
-            # Local file path → read bytes → upload to SerpApi
             if not os.path.exists(image_input):
                 raise FileNotFoundError(f"Image not found: {image_input}")
             with open(image_input, "rb") as f:
-                image_url = _upload_image_to_serpapi(f.read(), api_key)
+                image_url = _upload_to_tmpfiles(f.read())
     else:
         raise TypeError(f"Unsupported image_input type: {type(image_input)}")
 
@@ -124,10 +147,10 @@ def find_morphed_image_sources(
         print("[SerpApi] Could not obtain a public image URL. Aborting search.")
         return []
 
-    # ── Step 2: Call SerpApi Yandex Images ────────────────────────────────
+    # ── Step 2: Call SerpApi Google Lens ──────────────────────────────────
     params = {
-        "engine":  "yandex_images",
-        "url":     image_url,
+        "engine": "google_lens",
+        "url": image_url,
         "api_key": api_key,
     }
 
@@ -142,26 +165,42 @@ def find_morphed_image_sources(
         print(f"[SerpApi] API error: {results['error']}")
         return []
 
-    # ── Step 3: Extract sites_containing_image ────────────────────────────
-    sites = results.get("sites_containing_image", [])
+    # ── Step 3: Extract Results ──────────────────────────────────────────
+    visual_matches = results.get("visual_matches", [])
 
-    if not sites:
+    if not visual_matches:
+        # Fallback to Google Reverse Image Search if Lens has no visual matches
+        print("[SerpApi] No visual matches in Lens. Trying Google Reverse Image...")
+        params["engine"] = "google_reverse_image"
+        params["image_url"] = image_url
+        del params["url"]
+        try:
+            search = GoogleSearch(params)
+            res2 = search.get_dict()
+            visual_matches = res2.get("image_results", [])
+        except:
+            pass
+
+    if not visual_matches:
         print("[SerpApi] No websites found containing this image.")
         return []
 
     output: List[Dict[str, str]] = []
-    for site in sites[:max_results]:
-        # Yandex returns: title, description, url, domain, etc.
+    for match in visual_matches[:max_results]:
+        # Harmonize field names
         website_name = (
-            site.get("domain")        # e.g. "instagram.com"
-            or site.get("title")      # page title as fallback
-            or site.get("description", "Unknown Source")
+            match.get("source")       # Lens
+            or match.get("title")     # Reverse Image / Fallback
+            or "Unknown Source"
         )
-        link = site.get("url", "")
+        link = match.get("link") or ""
+        thumbnail = match.get("thumbnail") or ""
+        
         if link:
             output.append({
                 "website_name": website_name,
                 "link":         link,
+                "thumbnail":    thumbnail
             })
 
     return output
