@@ -221,7 +221,7 @@ except ImportError:
 VERSION = "1.0.4-lens-harden"
 application = Flask(__name__)
 app = application # Alias for compatibility
-CORS(application)
+CORS(application, resources={r"/api/*": {"origins": "*"}})
 
 # ─── Database Setup ───────────────────────────────────────────────────────────
 # Use SQLite by default if no DATABASE_URL is provided, else use PostgreSQL
