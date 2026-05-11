@@ -1,92 +1,139 @@
-# DeepShield AI
+# 🛡️ DeepShield AI — Identity Protection Platform
 
-DeepShield AI is a state-of-the-art Identity Protection Platform designed to secure your digital presence by proactively detecting unauthorized deepfakes, face-swaps, and manipulated media across the internet. Built with a visually stunning, responsive React frontend and a powerful PyTorch-driven Flask backend, DeepShield leverages cutting-edge computer vision to provide comprehensive threat analysis and detailed cryptographic reporting.
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 
-## Visual DeepFake Detection (Technical Overview)
+**DeepShield AI** is a professional-grade security platform designed to detect, track, and mitigate the risks of AI-generated media. By combining cutting-edge computer vision, vector similarity search, and global web tracing, DeepShield provides users with the tools to protect their digital identity in an era of hyper-realistic deepfakes.
 
-Our detection system relies heavily on the research and datasets proposed in the context of visual deepfake detection. 
+---
 
-We address the challenge that models proposed in current state-of-the-art literature (like FaceForensics++) often do not generalize well to real-life videos randomly collected from platforms like YouTube. Our solution relies on a dynamic neural network constantly updated with real-world data.
+## 🛠️ System Architecture
 
-Our backend PyTorch model is based on a pre-trained **ResNet18** architecture that we fine-tune to solve the deepfake detection problem. We perform extensive inference incorporating both standard datasets and augmented real-world data to identify manipulations.
+DeepShield AI utilizes a three-tier architecture designed for high availability and low-latency AI inference.
 
-### Datasets
+```mermaid
+graph TD
+    A[React/TypeScript Frontend] -->|API Proxy| B[FastAPI Gateway]
+    B -->|WSGI Proxy| C[Flask AI Backend]
+    C -->|Vector Search| D[FAISS Index]
+    C -->|Inference| E[PyTorch ResNet18]
+    C -->|Web Trace| F[Google Lens/SerpApi]
+    C -->|Storage| G[PostgreSQL/SQLite]
+    
+    subgraph "AWS Infrastructure"
+        H[AWS Amplify - Frontend]
+        I[AWS Elastic Beanstalk - Backend]
+        J[AWS CloudFront - HTTPS Bridge]
+    end
+```
 
-The underlying model research utilizes two major data sources:
-1. **FaceForensics++**: Half of the dataset used in this project is from the [FaceForensics](https://github.com/ondyari/FaceForensics) deepfake detection dataset.
-2. **Real-world (YouTube) Data**: Augmented deepfake data collected from the wild to ensure our model detects highly customized, unseen manipulation techniques.
+---
 
-When a model is trained on a combination of both datasets, it learns to detect both real-world manipulation techniques as well as the other synthetic methods mentioned in the FaceForensics++ paper (Deepfakes, Face2Face, FaceSwap, NeuralTextures).
+## 🌟 Advanced Features
 
-## Key Features
+### 🔍 Face Trace (Global Identity Search)
+The flagship feature of DeepShield. Upload a facial image to initiate a global search.
+- **Visual Mapping**: Uses high-dimensional facial embeddings to identify matches across indexed web sources.
+- **Direct Action**: Provides clickable source links to every website where your image is circulating.
+- **Privacy First**: Images are processed in a secure buffer and never permanently stored unless added to history.
 
-- **Proactive AI Threat Analysis**: Instantly scan images and videos. The backend extracts faces using OpenCV Haar Cascades and runs inference via our ResNet18 model to calculate precise deepfake probabilities.
-- **Dynamic Evidence Reports**: Generate and download visually comprehensive PDF investigation reports with cryptographic signatures, suitable for legal and corporate takedowns.
-- **Enterprise-grade Authentication**: Secure login and registration with JWT (JSON Web Tokens) and secure session management.
-- **Interactive Global Dashboard**: Track threats, scan history, and protection metrics across a personalized, high-performance dashboard.
-- **Secure Cloud Proxying**: Advanced HTTPS-to-HTTP bridging via AWS CloudFront for secure, encrypted communication between frontend and backend.
+### 🤖 Multi-Engine Deepfake Detection
+- **ResNet18 Neural Network**: Fine-tuned on the FaceForensics++ dataset for high-accuracy manipulation detection.
+- **Real-Time Processing**: Frame-by-frame analysis for video uploads (MP4, WEBM).
+- **Verdicts**: Provides a detailed probability score (Real vs. Deepfake) based on sub-surface facial artifact analysis.
 
+### ⚡ FAISS Vector Similarity Engine
+- **FaceNet Integration**: Extracts 512-dimensional facial embeddings.
+- **Similarity Matching**: Leverages a Facebook AI Similarity Search (FAISS) index to find visually similar threats in your scan history.
 
-## Setup & Installation
+### 🚨 Real-Time Security Dashboard
+- **Live Threats**: Backend-driven alert system that monitors unauthorized scanning attempts.
+- **Webcam Integration**: Direct capture and scan from local media devices.
+- **Evidence Reports**: Generate legally-compatible PDF reports featuring cryptographic scan hashes and detection metrics.
 
-### Prerequisites
-- Node.js (v18+)
-- Python (3.8+)
-- RAM >= 16GB (for deep learning model inference)
-- NVIDIA GPU (Optional, for CUDA-accelerated inference)
+---
 
-### 1. Frontend Setup
+## 💻 Technical Stack
+
+| Component | Technology |
+| :--- | :--- |
+| **Frontend** | React 19, TypeScript, Framer Motion, Tailwind CSS, Lucide Icons |
+| **Gateway** | FastAPI, Uvicorn |
+| **Backend** | Flask, SQLAlchemy, OpenCV, NumPy |
+| **AI/ML** | PyTorch (ResNet18), FaceNet (MTCNN), FAISS |
+| **Infrastructure** | AWS Amplify, AWS Elastic Beanstalk, AWS CloudFront |
+| **Database** | PostgreSQL (Production), SQLite (Testing/Local) |
+
+---
+
+## 🔧 Installation & Development
+
+### 1. Repository Initialization
 ```bash
-# Install frontend dependencies
+git clone https://github.com/BenhurBakki/DeepShield-Ai.git
+cd DeepShield-Ai
+```
+
+### 2. Frontend Setup (React + TS)
+```bash
+# Install dependencies
 npm install
 
-# Run the development server
+# Run dev server
 npm run dev
 ```
 
-### 2. Backend Setup
+### 3. Backend Setup (Flask + AI Stack)
 ```bash
 cd backend
-
-# Create a virtual environment
 python -m venv venv
-source venv/bin/activate  # Or `venv\Scripts\activate` on Windows
+source venv/bin/activate # Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install AI dependencies (CPU optimized for production)
 pip install -r requirements.txt
 
-# Start the Flask API
-python application.py
+# Start the High-Performance Gateway
+python fastapi_gateway.py
 ```
-## Deployment Architecture
 
-DeepShield AI is deployed using a secure, scalable AWS architecture:
-- **Frontend**: Hosted on **AWS Amplify** with automated CI/CD.
-- **Backend API**: Running on **AWS Elastic Beanstalk** (Python Platform).
-- **Security Bridge**: An **AWS CloudFront** distribution acts as a secure HTTPS-to-HTTP proxy to resolve Mixed Content restrictions.
-- **Routing**: Amplify utilizes Reverse Proxy rewrites (`/api/*`) to securely route traffic through the CloudFront bridge to the backend.
+---
 
-### Production Status
-- **Auth/Scanning**: Fully functional via secure proxying.
-- **Environment**: Python 3.11 / Amazon Linux 2023.
+## ☁️ Cloud Deployment
 
+### AWS Amplify (Frontend)
+- Automated CI/CD triggered via the `main` branch.
+- Proxy rules configured in `amplify.yml` to route `/api/*` requests to the CloudFront bridge.
 
-### Production Access
-- **Frontend**: Accessible via the Amplify generated URL or `ben10.tech` (once DNS propagates).
-- **Backend**: API requests are routed through the CloudFront distribution `dejvzlgtkqd2u.cloudfront.net`.
+### AWS Elastic Beanstalk (Backend)
+- Deployed via the `DeepShield_EB_Final.zip` bundle.
+- Configured with `Python 3.11` on Amazon Linux 2023.
+- Environment variables: `SERPAPI_KEY`, `SECRET_KEY`, `DATABASE_URL`.
 
-### Technical Refinements (v13+)
-- **FAISS Vector Engine**: High-performance L2 similarity search for facial threat matching.
-- **512-dim Embeddings**: Facial features extracted via FaceNet/ArcFace compatible pipeline.
-- **Strict Security**: Environment-only SECRET_KEY and 16MB file validation.
-- **Deployment**: Secure HTTPS-to-HTTP proxying via CloudFront + Elastic Beanstalk.
+### HTTPS/CORS Bridge
+- **AWS CloudFront** distribution `dejvzlgtkqd2u.cloudfront.net` handles SSL termination and proxies requests to the EB environment to prevent "Mixed Content" security blocks.
 
-## Repository Structure
+---
 
-- `/src` - React frontend application featuring glassmorphism design.
-- `/backend` - Flask REST API with PyTorch and OpenCV integrations.
-- `/deepfake-repo` - Original research scripts and PyTorch dataset loaders for the underlying ResNet18 model.
+## 📄 API Documentation
 
-## License
+### `POST /api/detect`
+Analyzes an image for deepfake probability and performs a vector search.
+- **Payload**: `multipart/form-data` with `file`.
+- **Response**: Probability scores, verdict, and similar matches.
 
-© 2025 DeepShield AI Contributors. All third-party names and trademarks are properties of their respective owners.
+### `POST /api/face-trace/search`
+Initiates an asynchronous global web search for a face.
+- **Payload**: `multipart/form-data` with `file`.
+- **Response**: `task_id` for polling.
+
+### `GET /api/alerts`
+Retrieves live security alerts from the backend engine.
+
+---
+
+## 🛡️ License & Safety
+DeepShield AI is provided for identity protection and investigative research. The creators do not condone the use of this tool for unauthorized surveillance or harassment.
+
+© 2025 DeepShield AI. Built with precision for digital safety.
