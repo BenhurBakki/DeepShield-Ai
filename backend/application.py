@@ -166,13 +166,47 @@ def face_trace_search():
     if 'file' not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
         
+# ─── Async Task Storage ──────────────────────────────────────────────────────
+# Simple in-memory storage for search results
+_SEARCH_TASKS = {}
+
+def _run_async_search(task_id, img_bytes):
+    try:
+        results = find_morphed_image_sources(img_bytes)
+        _SEARCH_TASKS[task_id] = {"status": "completed", "results": results}
+    except Exception as e:
+        _SEARCH_TASKS[task_id] = {"status": "failed", "error": str(e)}
+
+@app.route('/api/face-trace/search', methods=['POST'])
+def face_trace_search():
+    if not REVERSE_SEARCH_AVAILABLE:
+        return jsonify({"error": "Reverse search module not loaded"}), 500
+    
+    if 'file' not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+        
     try:
         file = request.files['file']
         img_bytes = file.read()
-        results = find_morphed_image_sources(img_bytes)
-        return jsonify(results)
+        
+        # Create a unique task ID and start background thread
+        import threading
+        task_id = hashlib.md5(img_bytes[:100] + str(time.time()).encode()).hexdigest()[:12]
+        _SEARCH_TASKS[task_id] = {"status": "processing"}
+        
+        thread = threading.Thread(target=_run_async_search, args=(task_id, img_bytes))
+        thread.start()
+        
+        return jsonify({"status": "accepted", "task_id": task_id}), 202
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/face-trace/status/<task_id>', methods=['GET'])
+def face_trace_status(task_id):
+    task = _SEARCH_TASKS.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    return jsonify(task)
 
 @app.route('/api/health')
 def health():

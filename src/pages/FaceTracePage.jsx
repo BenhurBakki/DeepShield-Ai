@@ -114,25 +114,52 @@ const FaceTracePanel = () => {
     const tick = (p, msg) => { setProgress(p); setStatusMsg(msg); };
 
     try {
-      tick(15, 'Sending image to scan engine...');
-      const API_URL = "http://Deepshield-backend-env-1.eba-xrtbwy37.us-east-1.elasticbeanstalk.com";
+      tick(15, 'Starting search task...');
+      const API_URL = import.meta.env.VITE_API_URL || '';
       const formData = new FormData();
       formData.append('file', file);
 
-      const backendResp = await fetch(`${API_URL}/api/face-trace/search`, {
+      const initResp = await fetch(`${API_URL}/api/face-trace/search`, {
         method: 'POST', body: formData,
       });
 
-      tick(75, 'Processing results...');
-
-      if (!backendResp.ok) {
-        const err = await backendResp.json().catch(() => ({}));
-        throw new Error(err.error || `Backend error ${backendResp.status}`);
+      if (!initResp.ok) {
+        const err = await initResp.json().catch(() => ({}));
+        throw new Error(err.error || `Backend error ${initResp.status}`);
       }
 
-      const data = await backendResp.json();
-      tick(100, 'Done ✓');
-      setResults({ matches: data.matches || [], total: data.total || 0 });
+      const { task_id } = await initResp.json();
+      tick(30, 'Image uploaded. Search in progress...');
+
+      // ── Polling Loop ───────────────────────────────────────────────────
+      let completed = false;
+      let attempts = 0;
+      const maxAttempts = 30; // 60 seconds total
+
+      while (!completed && attempts < maxAttempts) {
+        attempts++;
+        await new Promise(r => setTimeout(r, 2000)); // Wait 2s
+        
+        const statusResp = await fetch(`${API_URL}/api/face-trace/status/${task_id}`);
+        if (!statusResp.ok) continue;
+
+        const task = await statusResp.json();
+        if (task.status === 'completed') {
+          completed = true;
+          tick(100, 'Done ✓');
+          setResults({ 
+            matches: task.results.matches || [], 
+            total: task.results.total || 0 
+          });
+        } else if (task.status === 'failed') {
+          throw new Error(task.error || 'Async search failed');
+        } else {
+          tick(30 + (attempts * 2), 'Searching the web via Google Lens...');
+        }
+      }
+
+      if (!completed) throw new Error('Search timed out. Please try again.');
+
     } catch (e) {
       setError(e.message || 'Search failed. Make sure the Flask backend is running.');
     } finally {
