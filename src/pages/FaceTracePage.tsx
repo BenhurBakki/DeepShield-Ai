@@ -8,7 +8,7 @@ import {
 
 const STEPS = ['Uploading image...', 'Generating visual fingerprint...', 'Scanning web sources...', 'Compiling results...'];
 
-const getDomain = (url) => {
+const getDomain = (url: any) => {
   try { return new URL(url).hostname.replace('www.', ''); }
   catch { return url?.slice(0, 30) || 'Unknown'; }
 };
@@ -16,7 +16,7 @@ const getDomain = (url) => {
 // Trace results are now fetched from the Flask backend which securely handles image hosting and SerpApi integration.
 
 // ── Match card ────────────────────────────────────────────────────────────────
-const MatchCard = ({ match, index }) => {
+const MatchCard = ({ match, index }: any) => {
   const [copied, setCopied] = useState(false);
   const [imgErr, setImgErr] = useState(false);
 
@@ -111,7 +111,7 @@ const FaceTracePanel = () => {
   const handleTrace = async () => {
     if (!file) return;
     setLoading(true); setError(null); setProgress(0); setResults(null);
-    const tick = (p, msg) => { setProgress(p); setStatusMsg(msg); };
+    const tick = (p: any, msg: any) => { setProgress(p); setStatusMsg(msg); };
 
     try {
       tick(15, 'Starting search task...');
@@ -276,7 +276,7 @@ const FaceTracePanel = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {STEPS.map((step, i) => {
+                  {STEPS.map((step: any, i: any) => {
                     const threshold = (i + 1) * 22;
                     const done = progress > threshold;
                     const active = progress > i * 22 && !done;
@@ -303,12 +303,12 @@ const FaceTracePanel = () => {
             <div className="glass-card rounded-2xl p-5">
               <h3 className="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest">How It Works</h3>
               <div className="space-y-3">
-                {[
+                {([
                   { icon: Upload, text: 'Upload any facial photo' },
                   { icon: Globe, text: 'AI scans the web via Google Lens' },
                   { icon: Search, text: 'All matching sources located' },
                   { icon: Link2, text: 'Get direct URLs to take action' },
-                ].map(({ icon: Icon, text }) => (
+                ] as any).map(({ icon: Icon, text }: any) => (
                   <div key={text} className="flex items-center gap-3">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>

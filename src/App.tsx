@@ -5,7 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import ReportPage from './pages/ReportPage';
 import AuthPage from './pages/AuthPage';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }: any) => {
   const { token, loading } = useAuth();
   if (loading) return <div className="h-screen bg-deep-black flex items-center justify-center text-[#0ea5e9]">Loading...</div>;
   if (!token) return <Navigate to="/auth" />;

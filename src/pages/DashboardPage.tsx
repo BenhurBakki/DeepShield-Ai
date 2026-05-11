@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import FaceTracePanel from './FaceTracePage';
 
 // Sidebar
-const Sidebar = ({ active, setActive, collapsed, setCollapsed }) => {
+const Sidebar = ({ active, setActive, collapsed, setCollapsed }: any) => {
   const navigate = useNavigate();
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -100,7 +100,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed }) => {
 };
 
 // Upload panel
-const ScanUploadPanel = ({ onScanStart }) => {
+const ScanUploadPanel = ({ onScanStart }: any) => {
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
   const onDrop = useCallback((files) => {
@@ -185,7 +185,7 @@ const ScanUploadPanel = ({ onScanStart }) => {
 };
 
 // Live processing
-const LiveProcessing = ({ scanning, progress, currentStep }) => {
+const LiveProcessing = ({ scanning, progress, currentStep }: any) => {
   const steps = ['Detecting Face', 'Generating Embeddings', 'Searching Dataset', 'Deepfake Analysis', 'Compiling Results'];
   return (
     <div className="glass-card rounded-2xl p-6">
@@ -235,7 +235,7 @@ const LiveProcessing = ({ scanning, progress, currentStep }) => {
 };
 
 // Results panel
-const ResultsPanel = ({ show }) => {
+const ResultsPanel = ({ show }: any) => {
   if (!show || show === true) return (
     <div className="glass-card rounded-2xl p-6 flex flex-col items-center justify-center min-h-[200px] text-center">
       <Eye size={28} className="text-slate-700 mb-3" />
@@ -339,7 +339,7 @@ const ResultsPanel = ({ show }) => {
 };
 
 // Face Trace Results Panel
-const TraceResultsPanel = ({ results, loading }) => {
+const TraceResultsPanel = ({ results, loading }: any) => {
   if (loading) return (
     <div className="glass-card rounded-2xl p-8 flex flex-col items-center justify-center min-h-[300px] text-center">
       <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} className="mb-4">
