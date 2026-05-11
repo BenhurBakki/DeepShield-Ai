@@ -379,6 +379,11 @@ const TraceResultsPanel = ({ results, loading }) => {
           <CheckCircle size={32} className="text-emerald-400 mx-auto mb-3 opacity-40" />
           <p className="text-sm font-semibold text-slate-300">No matches found</p>
           <p className="text-xs text-slate-500 mt-1 px-6">Your face was not detected in our public index of indexed websites.</p>
+          {results._debug && (
+            <div className="mt-4 px-6 py-2 rounded bg-black/20 text-[9px] font-mono text-slate-600 inline-block mx-auto uppercase tracking-wider">
+              SYS: {results._debug.version} | KEY: {results._debug.api_key_present ? "SET" : "MISSING"} | CV: {results._debug.haarcascade_exists ? "OK" : "ERR"}
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-3 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar flex-1">
@@ -462,7 +467,12 @@ const DashboardPage = () => {
       console.log("Trace API Response:", data);
       
       if (response.ok) {
-        setTraceResults(data.image_sources || []);
+        // Attach debug info to the results array if it exists so the UI can show it
+        const sources = data.image_sources || [];
+        if (data.debug_info) {
+          sources._debug = data.debug_info;
+        }
+        setTraceResults(sources);
       } else {
         const errorMsg = data.error || 'Trace failed. Please try again.';
         console.error("Trace API Error:", errorMsg);
