@@ -397,17 +397,7 @@ def login():
 def root():
     return jsonify({"status": "ok", "service": "DeepShield AI Backend"}), 200
 
-@application.route("/api/health", methods=["GET"])
-
-def health():
-    return jsonify({
-        "status": "ok",
-        "version": VERSION,
-        "model_loaded": MODEL_LOADED,
-        "torch_available": TORCH_AVAILABLE,
-        "opencv_available": OPENCV_AVAILABLE,
-        "demo_mode": not MODEL_LOADED
-    })
+# Health endpoint handled by health_v2 below
 
 
 @application.route("/api/detect", methods=["POST"])
@@ -702,7 +692,7 @@ def _run_async_search(task_id, img_bytes):
         _SEARCH_TASKS[task_id] = {"status": "failed", "error": str(e)}
 
 @app.route('/api/face-trace/search', methods=['POST'])
-def face_trace_search():
+def api_face_trace_search():
     if not REVERSE_SEARCH_AVAILABLE:
         return jsonify({"error": "Reverse search module not loaded"}), 500
     if 'file' not in request.files:
@@ -720,7 +710,7 @@ def face_trace_search():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/face-trace/status/<task_id>', methods=['GET'])
-def face_trace_status(task_id):
+def api_face_trace_status(task_id):
     task = _SEARCH_TASKS.get(task_id)
     if not task:
         return jsonify({"error": "Task not found"}), 404
@@ -743,5 +733,7 @@ print("\n" + "="*40)
 print("🚀 DEEPSHIELD STABLE REVERT SUCCESSFUL")
 print(f"Version: {VERSION}")
 print("="*40 + "\n")
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     application.run(host="0.0.0.0", port=port, debug=True)
