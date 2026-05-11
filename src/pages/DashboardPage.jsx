@@ -459,7 +459,7 @@ const DashboardPage = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const API_URL = import.meta.env.VITE_API_URL || '';
+      const API_URL = "http://Deepshield-backend-env-1.eba-xrtbwy37.us-east-1.elasticbeanstalk.com";
       const response = await fetch(`${API_URL}/api/detect?reverse_search=true`, {
         method: 'POST',
         body: formData,
@@ -512,7 +512,7 @@ const DashboardPage = () => {
       const isVideo = file.type.startsWith('video');
       const endpoint = isVideo ? '/api/detect_video' : '/api/detect';
       
-      const API_URL = import.meta.env.VITE_API_URL || '';
+      const API_URL = "http://Deepshield-backend-env-1.eba-xrtbwy37.us-east-1.elasticbeanstalk.com";
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         body: formData,
