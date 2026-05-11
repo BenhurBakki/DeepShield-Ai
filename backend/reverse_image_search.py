@@ -103,7 +103,7 @@ def _upload_to_tmpfiles(image_bytes: bytes) -> Optional[str]:
     url = "https://tmpfiles.org/api/v1/upload"
     files = {"file": ("image.jpg", image_bytes, "image/jpeg")}
     try:
-        response = requests.post(url, files=files, timeout=30)
+        response = requests.post(url, files=files, timeout=15)
         if response.status_code == 200:
             data = response.json()
             page_url = data.get("data", {}).get("url")
@@ -124,7 +124,7 @@ def _upload_to_catbox(image_bytes: bytes) -> Optional[str]:
     files = {"fileToUpload": ("image.jpg", image_bytes, "image/jpeg")}
     data = {"reqtype": "fileupload"}
     try:
-        response = requests.post(url, files=files, data=data, timeout=30)
+        response = requests.post(url, files=files, data=data, timeout=15)
         if response.status_code == 200:
             return response.text.strip()
         return None
@@ -210,6 +210,7 @@ def find_morphed_image_sources(
         "engine": "google_lens",
         "url": image_url,
         "api_key": api_key,
+        "requests_timeout": 15 # Ensure we don't hit gateway timeout
     }
 
     try:
