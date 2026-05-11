@@ -48,10 +48,7 @@ except ImportError:
 # ─── Configuration ────────────────────────────────────────────────────────────
 # Pull the key from environment so it is never hard-coded in source control.
 # Set SERPAPI_KEY as an environment variable (Elastic Beanstalk / .env / etc.)
-_DEFAULT_API_KEY = os.environ.get(
-    "SERPAPI_KEY",
-    "e4f5e3c0dea107b704a8c74a5a948b9868aa06cd0a791e4c59cc121e29920cbb"  # fallback key
-)
+_DEFAULT_API_KEY = os.environ.get("SERPAPI_KEY")
 
 
 def _crop_to_face(image_bytes: bytes) -> bytes:

@@ -56,7 +56,7 @@ source venv/bin/activate  # Or `venv\Scripts\activate` on Windows
 pip install -r requirements.txt
 
 # Start the Flask API
-python app.py
+python application.py
 ```
 ## Deployment Architecture
 

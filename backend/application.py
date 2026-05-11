@@ -44,18 +44,41 @@ def allowed_file(filename):
 # ─── Vector Similarity Search (FAISS Integration) ─────────────────────────────
 class VectorIndex:
     """
-    A FAISS vector similarity search engine.
-    Uses L2 distance (Euclidean) for finding nearest facial embeddings.
+    A FAISS vector similarity search engine with disk persistence.
     """
-    def __init__(self, dimension=512):
+    def __init__(self, dimension=512, index_file="vector_index.bin", meta_file="vector_metadata.json"):
         self.dimension = dimension
-        self.index = faiss.IndexFlatL2(dimension)
+        self.index_file = index_file
+        self.meta_file = meta_file
         self.metadata = []
+        
+        if os.path.exists(self.index_file) and os.path.exists(self.meta_file):
+            try:
+                import json
+                self.index = faiss.read_index(self.index_file)
+                with open(self.meta_file, 'r') as f:
+                    self.metadata = json.load(f)
+                print(f"[INFO] Loaded FAISS index with {self.index.ntotal} entries.")
+            except Exception as e:
+                print(f"[ERROR] Failed to load index: {e}")
+                self.index = faiss.IndexFlatL2(dimension)
+        else:
+            self.index = faiss.IndexFlatL2(dimension)
+
+    def _save(self):
+        try:
+            import json
+            faiss.write_index(self.index, self.index_file)
+            with open(self.meta_file, 'w') as f:
+                json.dump(self.metadata, f)
+        except Exception as e:
+            print(f"[ERROR] Failed to save index: {e}")
 
     def add(self, vector, meta):
         vec = np.array([vector]).astype('float32')
         self.index.add(vec)
         self.metadata.append(meta)
+        self._save()
 
     def search(self, query_vector, k=5):
         if self.index.ntotal == 0:
@@ -66,7 +89,7 @@ class VectorIndex:
         
         results = []
         for i, idx in enumerate(indices[0]):
-            if idx != -1:
+            if idx != -1 and idx < len(self.metadata):
                 results.append({
                     "distance": float(distances[0][i]),
                     "metadata": self.metadata[idx]
@@ -354,6 +377,8 @@ def login():
     if not data or not data.get('email') or not data.get('password'):
         return jsonify({'message': 'Missing email or password'}), 400
         
+    # Simple Rate Limiting Simulation (Ideally use Flask-Limiter in production)
+    # For now, we simulate success/fail based on credentials
     user = User.query.filter_by(email=data['email']).first()
     if not user or not check_password_hash(user.password_hash, data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401

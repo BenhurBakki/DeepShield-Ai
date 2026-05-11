@@ -21,7 +21,7 @@ Write-Host "Installing backend requirements..."
 & "$PSScriptRoot\backend\venv\Scripts\python.exe" -m pip install -r requirements.txt
 
 Write-Host "Starting Flask Backend in a new window..." -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "& { cd '$PSScriptRoot\backend'; .\venv\Scripts\activate; python app.py }"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "& { cd '$PSScriptRoot\backend'; .\venv\Scripts\activate; python application.py }"
 
 # 2. Setup Frontend
 Write-Host "Setting up Frontend..." -ForegroundColor Yellow
