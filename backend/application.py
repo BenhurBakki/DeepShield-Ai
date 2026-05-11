@@ -730,8 +730,7 @@ def _run_async_search(task_id, img_bytes):
 
 @app.route('/api/face-trace/search', methods=['POST'])
 def api_face_trace_search():
-    if not REVERSE_SEARCH_AVAILABLE:
-        return jsonify({"error": "Reverse search module not loaded"}), 500
+    # REVERSE_SEARCH_AVAILABLE is always True now because it's vanilla requests
     if 'file' not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
     try:
