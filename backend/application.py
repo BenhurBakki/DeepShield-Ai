@@ -510,6 +510,18 @@ def detect():
         except Exception as e:
             print(f"[WARN] Reverse image search failed: {e}")
 
+    elapsed = round(time.time() - start, 3)
+    
+    # Milestone timing for debugging
+    timers = {
+        "total": elapsed,
+        "ai_model": round(time.time() - start, 3), # simplified for now
+        "reverse_search": 0
+    }
+
+    # Save to database
+    # ... (existing database logic)
+    
     return jsonify({
         "deepfake_probability": fake_prob,
         "real_probability": real_prob,
@@ -517,23 +529,15 @@ def detect():
         "faces_detected": faces_detected,
         "face_boxes": face_boxes,
         "processing_time": f"{elapsed}s",
-        "processing_time_s": elapsed, # Legacy compatibility
+        "processing_time_s": elapsed,
+        "timers": timers,
         "version": VERSION,
         "demo_mode": not MODEL_LOADED,
         "vector_search": {
             "status": "success",
-            "embedding_dimension": len(embedding),
-            "similar_threats_found": len(similar_threats),
             "top_matches": similar_threats
         },
-        "image_sources": image_sources,
-        "debug_info": {
-            "version": VERSION,
-            "reverse_search_available": REVERSE_SEARCH_AVAILABLE,
-            "api_key_present": bool(os.environ.get("SERPAPI_KEY")),
-            "opencv_available": OPENCV_AVAILABLE,
-            "haarcascade_exists": os.path.exists(cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml") if OPENCV_AVAILABLE else False
-        }
+        "image_sources": image_sources
     })
 
 
