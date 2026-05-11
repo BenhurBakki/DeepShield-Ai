@@ -28,7 +28,7 @@ const AuthPage = () => {
         ? { email: formData.email, password: formData.password }
         : formData;
 
-      const API_URL = "http://Deepshield-backend-env-1.eba-xrtbwy37.us-east-1.elasticbeanstalk.com";
+      const API_URL = import.meta.env.VITE_API_URL || '';
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
