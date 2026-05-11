@@ -683,6 +683,52 @@ def detect_video():
         "image_sources": [] # Video doesn't support trace yet
     })
 
+@application.route("/api/face-trace/search", methods=["POST"])
+def face_trace_search():
+    """
+    Dedicated endpoint for Face Trace (reverse image search).
+    """
+    if "file" not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+    
+    f = request.files["file"]
+    if f.filename == '':
+        return jsonify({"error": "Empty filename"}), 400
+    
+    image_bytes = f.read()
+    
+    if not REVERSE_SEARCH_AVAILABLE:
+        return jsonify({"error": "Reverse image search is not available on this server."}), 503
+
+    try:
+        # Call the reverse image search logic
+        raw_results = find_morphed_image_sources(image_bytes)
+        
+        # Check for diagnostic errors
+        if raw_results and isinstance(raw_results[0], dict) and raw_results[0].get("_error"):
+            return jsonify({"error": raw_results[0].get("message")}), 500
+            
+        # Format results for the frontend
+        matches = []
+        for res in raw_results:
+            matches.append({
+                "title": res.get("website_name") or "Unknown Page",
+                "url": res.get("link") or "",
+                "thumbnail": res.get("thumbnail") or "",
+                "source": res.get("website_name") or "Unknown",
+                "type": "visual_match"
+            })
+            
+        return jsonify({
+            "matches": matches,
+            "total": len(matches),
+            "status": "success"
+        })
+    except Exception as e:
+        print(f"[ERROR] Face Trace failed: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @application.route("/api/history", methods=["GET"])
 def get_history():
     """Return the recent scan history from the database."""

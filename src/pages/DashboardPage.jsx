@@ -8,7 +8,9 @@ import {
   Eye, TrendingUp, ChevronRight, Zap, Database, Activity, Lock,
   Globe, Search, ExternalLink
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { useAuth } from '../context/AuthContext';
+import FaceTracePanel from './FaceTracePage';
 
 // Sidebar
 const Sidebar = ({ active, setActive, collapsed, setCollapsed }) => {
@@ -16,7 +18,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed }) => {
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { id: 'scan', icon: ScanLine, label: 'New Scan' },
-    { id: 'trace', icon: Globe, label: 'Face Trace' },
+    { id: 'face-trace', icon: Globe, label: 'Face Trace' },
     { id: 'reports', icon: FileText, label: 'Reports', route: '/report' },
     { id: 'threats', icon: Bell, label: 'Threat Alerts', badge: 3 },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
@@ -566,7 +568,7 @@ const DashboardPage = () => {
         <div className="glass border-b border-[rgba(14,165,233,0.12)] px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div>
             <h1 className="text-lg font-bold text-white">
-              {{ dashboard: 'Overview', scan: 'New Scan', trace: 'Face Trace', threats: 'Threat Alerts', analytics: 'Analytics', settings: 'Settings' }[active] || 'Dashboard'}
+              {{ dashboard: 'Overview', scan: 'New Scan', 'face-trace': 'Face Trace', threats: 'Threat Alerts', analytics: 'Analytics', settings: 'Settings' }[active] || 'Dashboard'}
             </h1>
             <p className="text-xs text-slate-500">DeepShield AI — Identity Protection Platform</p>
           </div>
@@ -581,6 +583,8 @@ const DashboardPage = () => {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {/* ── FACE TRACE VIEW ── */}
+          {active === 'face-trace' && <FaceTracePanel />}
 
           {/* ── THREATS VIEW ── */}
           {active === 'threats' && (
