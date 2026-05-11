@@ -12,9 +12,15 @@ try:
     import jwt
     import hashlib
     import numpy as np
-    import faiss
-    import torch
-    import torchvision.transforms as transforms
+    try:
+        import torch
+        import torchvision.transforms as transforms
+        import faiss
+        AI_READY = True
+    except ImportError:
+        AI_READY = False
+        print("[WARN] AI libraries (torch/faiss) not found. Running in simulation mode.")
+    
     from PIL import Image
     from functools import wraps
     from werkzeug.security import generate_password_hash, check_password_hash
