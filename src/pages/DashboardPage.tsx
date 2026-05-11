@@ -447,7 +447,58 @@ const DashboardPage = () => {
   const [showResults, setShowResults] = useState(false);
   const [traceResults, setTraceResults] = useState(null);
   const [tracing, setTracing] = useState(false);
+  const [alerts, setAlerts] = useState([]);
   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || '';
+        const res = await fetch(`${API_URL}/api/alerts`);
+        const data = await res.json();
+        setAlerts(data);
+      } catch (err) { console.error("Alert fetch failed", err); }
+    };
+    fetchAlerts();
+  }, []);
+
+  const [isWebcamOpen, setIsWebcamOpen] = useState(false);
+  const videoRef = useRef(null);
+
+  const startWebcam = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setIsWebcamOpen(true);
+      }
+    } catch (err) {
+      setError("Webcam access denied or not found.");
+    }
+  };
+
+  const captureWebcam = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+      canvas.toBlob((blob) => {
+        const f = new File([blob], "webcam_capture.jpg", { type: "image/jpeg" });
+        setFile(f);
+        setPreview(URL.createObjectURL(f));
+        setIsWebcamOpen(false);
+        // Stop all tracks
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      }, 'image/jpeg');
+    }
+  };
+
+  const handleTrace = async () => {
+    if (!file) return;
+    setTracing(true);
+    setTraceResults(null);
+    setActive('trace');
 
   const startTrace = async (file) => {
     if (!file) return;
@@ -591,29 +642,29 @@ const DashboardPage = () => {
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-base font-bold text-white">Active Threat Alerts</h2>
-                <span className="threat-critical text-[10px] font-bold px-3 py-1 rounded-full">3 CRITICAL</span>
+                <span className="threat-critical text-[10px] font-bold px-3 py-1 rounded-full">{alerts.length} ACTIVE</span>
               </div>
               <div className="space-y-3">
-                {[
-                  { id: 'DS-4891', title: 'Deepfake video detected — Social Media', platform: 'Social Media Platform', score: 94.3, risk: 'critical', time: '2 hours ago' },
-                  { id: 'DS-4890', title: 'Face-swap image found on image board', platform: 'Image Board', score: 78.9, risk: 'high', time: '6 hours ago' },
-                  { id: 'DS-4889', title: 'Identity exposure on data broker site', platform: 'Data Broker', score: 65.2, risk: 'medium', time: '1 day ago' },
-                ].map((alert) => (
-                  <div key={alert.id} className="glass-card rounded-xl p-5 flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${ alert.risk === 'critical' ? 'bg-[rgba(239,68,68,0.15)] border border-[rgba(239,68,68,0.3)]' : alert.risk === 'high' ? 'bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.3)]' : 'bg-[rgba(6,182,212,0.15)] border border-[rgba(6,182,212,0.3)]' }`}>
-                      <AlertTriangle size={16} className={alert.risk === 'critical' ? 'text-red-400' : alert.risk === 'high' ? 'text-amber-400' : 'text-cyan-400'} />
+                {alerts.length === 0 ? (
+                  <div className="glass-card rounded-xl p-12 text-center text-slate-500 text-sm">No active threats detected.</div>
+                ) : (
+                  alerts.map((alert) => (
+                    <div key={alert.id} className="glass-card rounded-xl p-5 flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${ alert.severity === 'high' ? 'bg-[rgba(239,68,68,0.15)] border border-[rgba(239,68,68,0.3)]' : alert.severity === 'medium' ? 'bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.3)]' : 'bg-[rgba(6,182,212,0.15)] border border-[rgba(6,182,212,0.3)]' }`}>
+                        <AlertTriangle size={16} className={alert.severity === 'high' ? 'text-red-400' : alert.severity === 'medium' ? 'text-amber-400' : 'text-cyan-400'} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-white mb-0.5">{alert.title}</div>
+                        <div className="text-xs text-slate-500">{alert.source} · {new Date(alert.created_at).toLocaleDateString()}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-xs font-bold px-2 py-0.5 rounded-full mb-1 ${ alert.severity === 'high' ? 'threat-critical' : alert.severity === 'medium' ? 'threat-high' : 'threat-medium' }`}>{alert.severity.toUpperCase()}</div>
+                        <p className="text-[10px] text-slate-600 max-w-[120px] truncate">{alert.description}</p>
+                      </div>
+                      <Link to="/report" className="btn-primary text-xs px-3 py-2 ml-2">Detail</Link>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white mb-0.5">{alert.title}</div>
-                      <div className="text-xs text-slate-500">{alert.platform} · {alert.time}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-xs font-bold px-2 py-0.5 rounded-full mb-1 ${ alert.risk === 'critical' ? 'threat-critical' : alert.risk === 'high' ? 'threat-high' : 'threat-medium' }`}>{alert.risk.toUpperCase()}</div>
-                      <div className="text-xs text-slate-500">{alert.score}% match</div>
-                    </div>
-                    <Link to="/report" className="btn-primary text-xs px-3 py-2 ml-2">View</Link>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </motion.div>
           )}

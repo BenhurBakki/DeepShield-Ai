@@ -14,7 +14,7 @@ from PIL import Image
 
 # ── make sure the backend package is importable ──────────────────────────────
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from app import VectorIndex, FacialExtractor
+from application import VectorIndex, FacialExtractor
 
 
 # ─── VectorIndex (FAISS) ─────────────────────────────────────────────────────
@@ -123,4 +123,4 @@ class TestDetectValidation:
         data = json.loads(response.data)
         assert "deepfake_probability" in data
         assert "verdict" in data
-        assert "embedding_dimension" in data.get("vector_search", {})
+        assert "top_matches" in data.get("vector_search", {})
