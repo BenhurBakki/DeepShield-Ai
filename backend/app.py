@@ -476,6 +476,9 @@ def detect():
     if REVERSE_SEARCH_AVAILABLE and run_reverse_search:
         try:
             image_sources = find_morphed_image_sources(image_bytes)
+            # If the first item is a diagnostic error, treat the whole request as failed
+            if image_sources and isinstance(image_sources[0], dict) and image_sources[0].get("_error"):
+                return jsonify({"error": image_sources[0].get("message")}), 500
         except Exception as e:
             print(f"[WARN] Reverse image search failed: {e}")
 

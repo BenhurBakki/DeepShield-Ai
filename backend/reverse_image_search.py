@@ -180,8 +180,9 @@ def find_morphed_image_sources(
         raise TypeError(f"Unsupported image_input type: {type(image_input)}")
 
     if not image_url:
-        print("[SerpApi] Could not obtain a public image URL. Aborting search.")
-        return []
+        error_msg = "[SerpApi] Could not obtain a public image URL (hosting failed)."
+        print(error_msg)
+        return [{"_error": True, "message": error_msg}]
 
     # ── Step 2: Call SerpApi Google Lens ──────────────────────────────────
     params = {
@@ -198,8 +199,9 @@ def find_morphed_image_sources(
         return []
 
     if "error" in results:
-        print(f"[SerpApi] API error: {results['error']}")
-        return []
+        error_msg = f"[SerpApi] API error: {results['error']}"
+        print(error_msg)
+        return [{"_error": True, "message": error_msg}]
 
     # ── Step 3: Extract Results ──────────────────────────────────────────
     visual_matches = results.get("visual_matches", [])
