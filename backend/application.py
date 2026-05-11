@@ -12,6 +12,10 @@ try:
     import jwt
     import hashlib
     import numpy as np
+    import faiss
+    import torch
+    import torchvision.transforms as transforms
+    from PIL import Image
     from functools import wraps
     from werkzeug.security import generate_password_hash, check_password_hash
     from werkzeug.utils import secure_filename
@@ -270,7 +274,10 @@ class ScanHistory(db.Model):
         }
 
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"[INFO] Database tables already exist or initialization skipped: {e}")
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
