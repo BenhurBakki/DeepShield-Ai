@@ -714,7 +714,17 @@ def _run_async_search(task_id, img_bytes):
     try:
         api_key = os.environ.get("SERPAPI_KEY")
         results = find_morphed_image_sources(img_bytes, api_key=api_key)
-        _SEARCH_TASKS[task_id] = {"status": "completed", "results": results}
+        # Frontend expects { matches: [], total: X }
+        if isinstance(results, list) and len(results) > 0 and "_error" in results[0]:
+             _SEARCH_TASKS[task_id] = {"status": "failed", "error": results[0]["message"]}
+        else:
+             _SEARCH_TASKS[task_id] = {
+                 "status": "completed", 
+                 "results": {
+                     "matches": results if isinstance(results, list) else [],
+                     "total": len(results) if isinstance(results, list) else 0
+                 }
+             }
     except Exception as e:
         _SEARCH_TASKS[task_id] = {"status": "failed", "error": str(e)}
 
