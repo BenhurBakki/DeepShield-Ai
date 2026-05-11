@@ -501,6 +501,13 @@ def detect():
             "top_matches": similar_threats
         },
         "image_sources": image_sources,
+        "debug_info": {
+            "version": VERSION,
+            "reverse_search_available": REVERSE_SEARCH_AVAILABLE,
+            "api_key_present": bool(os.environ.get("SERPAPI_KEY")),
+            "opencv_available": OPENCV_AVAILABLE,
+            "haarcascade_exists": os.path.exists(cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml") if OPENCV_AVAILABLE else False
+        }
     })
 
 
