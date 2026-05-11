@@ -686,29 +686,33 @@ def detect_video():
 @application.route("/api/face-trace/search", methods=["POST"])
 def face_trace_search():
     """
-    Dedicated endpoint for Face Trace (reverse image search).
+    Dedicated endpoint for Face Trace with extreme error catching to debug 502s.
     """
-    if "file" not in request.files:
-        return jsonify({"error": "No image provided"}), 400
-    
-    f = request.files["file"]
-    if f.filename == '':
-        return jsonify({"error": "Empty filename"}), 400
-    
-    image_bytes = f.read()
-    
-    if not REVERSE_SEARCH_AVAILABLE:
-        return jsonify({"error": "Reverse image search is not available on this server."}), 503
-
     try:
+        if "file" not in request.files:
+            return jsonify({"error": "No image provided"}), 400
+        
+        f = request.files["file"]
+        if f.filename == '':
+            return jsonify({"error": "Empty filename"}), 400
+        
+        image_bytes = f.read()
+        print(f"[DEBUG] Received image for trace: {len(image_bytes)} bytes")
+        
+        if not REVERSE_SEARCH_AVAILABLE:
+            return jsonify({"error": "Reverse image search module failed to load. Check server logs."}), 503
+
         # Call the reverse image search logic
+        # find_morphed_image_sources handles hosting and SerpApi
         raw_results = find_morphed_image_sources(image_bytes)
         
-        # Check for diagnostic errors
+        if not isinstance(raw_results, list):
+            return jsonify({"error": f"Internal Error: Expected list, got {type(raw_results)}"}), 500
+
+        # Check for diagnostic errors returned by the module
         if raw_results and isinstance(raw_results[0], dict) and raw_results[0].get("_error"):
             return jsonify({"error": raw_results[0].get("message")}), 500
             
-        # Format results for the frontend
         matches = []
         for res in raw_results:
             matches.append({
