@@ -106,19 +106,26 @@ class FacialExtractor:
     """
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = None
+        self.mtcnn = None
+        self.loaded = False
+
+    def _lazy_load(self):
+        if self.loaded: return True
         try:
-            # Load pre-trained FaceNet model
+            from facenet_pytorch import InceptionResnetV1, MTCNN
             self.model = InceptionResnetV1(pretrained='vggface2').eval().to(self.device)
             self.mtcnn = MTCNN(device=self.device)
             self.loaded = True
-            print("[INFO] FaceNet model loaded successfully.")
+            print("[INFO] FaceNet/MTCNN loaded lazily.")
+            return True
         except Exception as e:
-            print(f"[WARNING] Could not load FaceNet model: {e}. Falling back to simulation.")
-            self.loaded = False
+            print(f"[ERROR] Lazy load failed: {e}")
+            return False
 
     def get_embedding(self, image_bytes):
-        if not self.loaded:
-            # Fallback to deterministic hash-based embedding for consistency
+        if not self._lazy_load():
+            # Fallback logic
             h = hashlib.sha256(image_bytes).digest()
             np.random.seed(int.from_bytes(h[:8], 'little'))
             embedding = np.random.randn(512).astype('float32')
@@ -169,31 +176,30 @@ try:
             )
         return model
 
-    MODEL_PATH = os.environ.get("MODEL_PATH", "model.pth")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+_GLOBAL_MODEL = None
+_MODEL_LOADED = False
 
-    if os.path.exists(MODEL_PATH):
-        model = create_model()
-        model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
-        model.eval()
-        MODEL_LOADED = True
-        print(f"[INFO] Model loaded from {MODEL_PATH}")
-    else:
-        MODEL_LOADED = False
-        print("[WARN] No model file found — running in demo mode")
+def _lazy_load_detection_model():
+    global _GLOBAL_MODEL, _MODEL_LOADED
+    if _MODEL_LOADED: return True
+    try:
+        import torch
+        import torchvision.models as models
+        import torch.nn as nn
+        
+        MODEL_PATH = os.environ.get("MODEL_PATH", "model.pth")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225])
-    ])
-    TORCH_AVAILABLE = True
-
-except ImportError:
-    TORCH_AVAILABLE = False
-    MODEL_LOADED = False
-    print("[WARN] PyTorch not installed — running in demo mode")
+        if os.path.exists(MODEL_PATH):
+            _GLOBAL_MODEL = create_model()
+            _GLOBAL_MODEL.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+            _GLOBAL_MODEL.eval()
+            _MODEL_LOADED = True
+            print(f"[INFO] Model loaded lazily from {MODEL_PATH}")
+            return True
+    except Exception as e:
+        print(f"[ERROR] Detection model lazy load failed: {e}")
+    return False
 
 # ─── Optional: face detection ─────────────────────────────────────────────────
 try:
@@ -282,9 +288,16 @@ def detect_faces_opencv(image_bytes):
         return []
 
 
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],
+                         [0.229, 0.224, 0.225])
+])
+
 def run_model(image_bytes):
     """Run the ResNet18 model on image bytes, return (real_prob, fake_prob)."""
-    if not TORCH_AVAILABLE or not MODEL_LOADED:
+    if not _lazy_load_detection_model():
         # Demo mode: return simulated values (deterministic based on image hash)
         import hashlib
         h = hashlib.md5(image_bytes).hexdigest()
@@ -320,9 +333,10 @@ def run_model(image_bytes):
                 cropped_face = cv2.cvtColor(cropped_face, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cropped_face)
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tensor = transform(img).unsqueeze(0).to(device)
     with torch.no_grad():
-        logits = model(tensor)
+        logits = _GLOBAL_MODEL(tensor)
         probs = torch.softmax(logits, dim=1).squeeze().tolist()
     
     # Ensure probs is a list even if batch size changes somehow
