@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import html2pdf from 'html2pdf.js';
 import {
   Shield, Download, AlertTriangle, CheckCircle, ExternalLink,
