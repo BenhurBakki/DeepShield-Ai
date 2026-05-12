@@ -2,7 +2,7 @@ import os
 import requests
 from serpapi import GoogleSearch
 
-API_KEY = "e4f5e3c0dea107b704a8c74a5a948b9868aa06cd0a791e4c59cc121e29920cbb"
+API_KEY = os.getenv("SERPAPI_KEY", "")
 image_url = "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
 
 print("--- GOOGLE REVERSE IMAGE SEARCH ---")

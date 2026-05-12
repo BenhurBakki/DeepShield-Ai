@@ -1,7 +1,7 @@
 import requests
 import os
 
-API_KEY = "e4f5e3c0dea107b704a8c74a5a948b9868aa06cd0a791e4c59cc121e29920cbb"
+API_KEY = os.getenv("SERPAPI_KEY", "")
 
 def debug_upload():
     # Use a REAL image from the web to upload
