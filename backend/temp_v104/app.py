@@ -42,70 +42,20 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ─── Vector Similarity Search (FAISS Integration) ─────────────────────────────
-class FacialVector(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    vector_json = db.Column(db.Text, nullable=False) # Store as JSON string for compatibility
-    metadata_json = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    def to_dict(self):
-        import json
-        return {
-            "id": self.id,
-            "metadata": json.loads(self.metadata_json),
-            "created_at": self.created_at.isoformat()
-        }
-
 class VectorIndex:
     """
-    A FAISS vector similarity search engine with PostgreSQL persistence.
+    A FAISS vector similarity search engine.
+    Uses L2 distance (Euclidean) for finding nearest facial embeddings.
     """
     def __init__(self, dimension=512):
         self.dimension = dimension
-        self.metadata = []
         self.index = faiss.IndexFlatL2(dimension)
-        # Note: we call _load_from_db manually after app is initialized
-
-    def _load_from_db(self):
-        try:
-            import json
-            vectors = FacialVector.query.all()
-            if not vectors:
-                return
-            
-            all_vecs = []
-            all_meta = []
-            for v in vectors:
-                vec = json.loads(v.vector_json)
-                meta = json.loads(v.metadata_json)
-                all_vecs.append(vec)
-                all_meta.append(meta)
-            
-            if all_vecs:
-                np_vecs = np.array(all_vecs).astype('float32')
-                self.index.add(np_vecs)
-                self.metadata = all_meta
-                print(f"[INFO] Loaded {len(all_vecs)} vectors from PostgreSQL into FAISS.")
-        except Exception as e:
-            print(f"[ERROR] Failed to load vectors from DB: {e}")
+        self.metadata = []
 
     def add(self, vector, meta):
-        import json
         vec = np.array([vector]).astype('float32')
         self.index.add(vec)
         self.metadata.append(meta)
-        
-        # Persistent storage in DB
-        try:
-            new_v = FacialVector(
-                vector_json=json.dumps(vector),
-                metadata_json=json.dumps(meta)
-            )
-            db.session.add(new_v)
-            db.session.commit()
-        except Exception as e:
-            print(f"[ERROR] Failed to save vector to DB: {e}")
-            db.session.rollback()
 
     def search(self, query_vector, k=5):
         if self.index.ntotal == 0:
@@ -116,7 +66,7 @@ class VectorIndex:
         
         results = []
         for i, idx in enumerate(indices[0]):
-            if idx != -1 and idx < len(self.metadata):
+            if idx != -1:
                 results.append({
                     "distance": float(distances[0][i]),
                     "metadata": self.metadata[idx]
@@ -133,26 +83,18 @@ class FacialExtractor:
     """
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = None
-        self.mtcnn = None
-        self.loaded = False
-
-    def _load(self):
-        if self.loaded: return True
         try:
             # Load pre-trained FaceNet model
             self.model = InceptionResnetV1(pretrained='vggface2').eval().to(self.device)
             self.mtcnn = MTCNN(device=self.device)
             self.loaded = True
             print("[INFO] FaceNet model loaded successfully.")
-            return True
         except Exception as e:
             print(f"[WARNING] Could not load FaceNet model: {e}. Falling back to simulation.")
             self.loaded = False
-            return False
 
     def get_embedding(self, image_bytes):
-        if not self._load():
+        if not self.loaded:
             # Fallback to deterministic hash-based embedding for consistency
             h = hashlib.sha256(image_bytes).digest()
             np.random.seed(int.from_bytes(h[:8], 'little'))
@@ -206,32 +148,16 @@ try:
 
     MODEL_PATH = os.environ.get("MODEL_PATH", "model.pth")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = None
-    MODEL_LOADED = False
 
-    def get_model():
-        global model, MODEL_LOADED
-        if model is not None:
-            return model
-        try:
-            if os.path.exists(MODEL_PATH) and os.path.getsize(MODEL_PATH) > 1000:
-                print(f"[BOOT] Initializing ResNet18 Inference Engine...")
-                model = create_model()
-                # Load weights with safety checks
-                state_dict = torch.load(MODEL_PATH, map_location=device)
-                model.load_state_dict(state_dict)
-                model.eval()
-                MODEL_LOADED = True
-                print(f"[SUCCESS] DeepShield AI Model v1.0.4 loaded from {MODEL_PATH}")
-            else:
-                print("[SYSTEM] Model weights not found or corrupted — Initializing Adaptive Simulation Engine")
-                # We still initialize the model architecture to allow for structure validation
-                model = create_model()
-                model.eval()
-        except Exception as e:
-            print(f"[CRITICAL] Model Initialization Failure: {e}")
-            MODEL_LOADED = False
-        return model
+    if os.path.exists(MODEL_PATH):
+        model = create_model()
+        model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+        model.eval()
+        MODEL_LOADED = True
+        print(f"[INFO] Model loaded from {MODEL_PATH}")
+    else:
+        MODEL_LOADED = False
+        print("[WARN] No model file found — running in demo mode")
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -255,9 +181,8 @@ except ImportError:
 
 # ─── App setup ────────────────────────────────────────────────────────────────
 VERSION = "1.0.4-lens-harden"
-application = Flask(__name__)
-app = application # Alias for compatibility
-CORS(application)
+app = Flask(__name__)
+CORS(app)
 
 # ─── Database Setup ───────────────────────────────────────────────────────────
 # Use SQLite by default if no DATABASE_URL is provided, else use PostgreSQL
@@ -285,24 +210,6 @@ class User(db.Model):
             "created_at": self.created_at.isoformat()
         }
 
-class ThreatAlert(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(255), nullable=False)
-    severity = db.Column(db.String(20), default="medium") # low, medium, high
-    source = db.Column(db.String(100), default="Web Trace")
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "description": self.description,
-            "severity": self.severity,
-            "source": self.source,
-            "created_at": self.created_at.isoformat()
-        }
-
 class ScanHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=True)
@@ -325,8 +232,6 @@ class ScanHistory(db.Model):
 
 with app.app_context():
     db.create_all()
-    # Initialize the vector index from the database
-    facial_vector_db._load_from_db()
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -391,19 +296,9 @@ def run_model(image_bytes):
                 cropped_face = cv2.cvtColor(cropped_face, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cropped_face)
 
-    m = get_model()
-    if m is None:
-        # Fallback to demo mode if model couldn't be loaded
-        import hashlib
-        h = hashlib.md5(image_bytes).hexdigest()
-        random.seed(int(h[:8], 16))
-        fake_prob = round(random.uniform(0.1, 0.95), 4)
-        random.seed()
-        return round(1 - fake_prob, 4), fake_prob
-
     tensor = transform(img).unsqueeze(0).to(device)
     with torch.no_grad():
-        logits = m(tensor)
+        logits = model(tensor)
         probs = torch.softmax(logits, dim=1).squeeze().tolist()
     
     # Ensure probs is a list even if batch size changes somehow
@@ -436,7 +331,7 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
-@application.route('/api/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
     if not data or not data.get('username') or not data.get('email') or not data.get('password'):
@@ -452,14 +347,12 @@ def register():
     
     return jsonify({'message': 'User created successfully'}), 201
 
-@application.route('/api/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     if not data or not data.get('email') or not data.get('password'):
         return jsonify({'message': 'Missing email or password'}), 400
         
-    # Simple Rate Limiting Simulation (Ideally use Flask-Limiter in production)
-    # For now, we simulate success/fail based on credentials
     user = User.query.filter_by(email=data['email']).first()
     if not user or not check_password_hash(user.password_hash, data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
@@ -474,14 +367,24 @@ def login():
         'user': user.to_dict()
     }), 200
 
-@application.route("/", methods=["GET"])
+@app.route("/", methods=["GET"])
 def root():
     return jsonify({"status": "ok", "service": "DeepShield AI Backend"}), 200
 
-# Health endpoint handled by health_v2 below
+@app.route("/api/health", methods=["GET"])
+
+def health():
+    return jsonify({
+        "status": "ok",
+        "version": VERSION,
+        "model_loaded": MODEL_LOADED,
+        "torch_available": TORCH_AVAILABLE,
+        "opencv_available": OPENCV_AVAILABLE,
+        "demo_mode": not MODEL_LOADED
+    })
 
 
-@application.route("/api/detect", methods=["POST"])
+@app.route("/api/detect", methods=["POST"])
 def detect():
     """
     Accept an image (multipart OR base64 JSON) and return:
@@ -608,7 +511,7 @@ def detect():
     })
 
 
-@application.route("/api/batch", methods=["POST"])
+@app.route("/api/batch", methods=["POST"])
 def batch_detect():
     """Accept multiple images and return results for each."""
     files = request.files.getlist("files")
@@ -647,7 +550,7 @@ def batch_detect():
 
     return jsonify({"results": results, "total": len(results)})
 
-@application.route("/api/detect_video", methods=["POST"])
+@app.route("/api/detect_video", methods=["POST"])
 def detect_video():
     """
     Accept a video file and return:
@@ -754,104 +657,14 @@ def detect_video():
         "image_sources": [] # Video doesn't support trace yet
     })
 
-@application.route("/api/alerts", methods=["GET"])
-def get_alerts():
-    """Return real backend-driven threat alerts."""
-    limit = request.args.get("limit", 10, type=int)
-    alerts = ThreatAlert.query.order_by(ThreatAlert.created_at.desc()).limit(limit).all()
-    if not alerts:
-        # Seed initial data if empty to satisfy the reviewer
-        seed = [
-            ThreatAlert(title="Identity Probe Detected", description="Multiple unauthorized facial scans detected from unknown botnet.", severity="high", source="Global Trace"),
-            ThreatAlert(title="Unusual Similarity Match", description="Potential identity theft: A highly similar face was found on a known phishing domain.", severity="medium", source="Face Trace")
-        ]
-        db.session.add_all(seed)
-        db.session.commit()
-        alerts = seed
-    return jsonify([a.to_dict() for a in alerts])
-
-@application.route("/api/history", methods=["GET"])
+@app.route("/api/history", methods=["GET"])
 def get_history():
     """Return the recent scan history from the database."""
     limit = request.args.get("limit", 50, type=int)
     history = ScanHistory.query.order_by(ScanHistory.created_at.desc()).limit(limit).all()
     return jsonify([record.to_dict() for record in history])
 
-# ─── Async Task Storage ──────────────────────────────────────────────────────
-_SEARCH_TASKS = {}
-
-def _run_async_search(task_id, img_bytes):
-    try:
-        api_key = os.environ.get("SERPAPI_KEY")
-        results = find_morphed_image_sources(img_bytes, api_key=api_key)
-        # Frontend expects { matches: [], total: X }
-        if isinstance(results, list) and len(results) > 0 and "_error" in results[0]:
-             _SEARCH_TASKS[task_id] = {"status": "failed", "error": results[0]["message"]}
-        else:
-             # Frontend expects: { url, source, title, thumbnail }
-             matches = []
-             if isinstance(results, list):
-                 for r in results:
-                     matches.append({
-                         "url": r.get("link", ""),
-                         "source": r.get("website_name", "Source"),
-                         "title": r.get("title") or r.get("website_name") or "External Match",
-                         "thumbnail": r.get("thumbnail", ""),
-                         "type": "visual_match"
-                     })
-
-             _SEARCH_TASKS[task_id] = {
-                 "status": "completed", 
-                 "results": {
-                     "matches": matches,
-                     "total": len(matches)
-                 }
-             }
-    except Exception as e:
-        _SEARCH_TASKS[task_id] = {"status": "failed", "error": str(e)}
-
-@app.route('/api/face-trace/search', methods=['POST'])
-def api_face_trace_search():
-    # REVERSE_SEARCH_AVAILABLE is always True now because it's vanilla requests
-    if 'file' not in request.files:
-        return jsonify({"error": "No image uploaded"}), 400
-    try:
-        file = request.files['file']
-        img_bytes = file.read()
-        import threading
-        task_id = hashlib.md5(img_bytes[:100] + str(time.time()).encode()).hexdigest()[:12]
-        _SEARCH_TASKS[task_id] = {"status": "processing"}
-        thread = threading.Thread(target=_run_async_search, args=(task_id, img_bytes))
-        thread.start()
-        return jsonify({"status": "accepted", "task_id": task_id}), 202
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/face-trace/status/<task_id>', methods=['GET'])
-def api_face_trace_status(task_id):
-    task = _SEARCH_TASKS.get(task_id)
-    if not task:
-        return jsonify({"error": "Task not found"}), 404
-    return jsonify(task)
-
-@app.route('/api/health')
-def health_v2():
-    return jsonify({
-        "status": "ok", 
-        "version": VERSION,
-        "serpapi_active": bool(os.environ.get("SERPAPI_KEY")),
-        "modules": {
-            "reverse_search": REVERSE_SEARCH_AVAILABLE,
-            "torch": torch.__version__ if torch.cuda.is_available() else "cpu",
-            "faiss": True
-        }
-    })
-
-print("\n" + "="*40)
-print("DEEPSHIELD STABLE REVERT SUCCESSFUL")
-print(f"Version: {VERSION}")
-print("="*40 + "\n")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    application.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)

@@ -855,16 +855,20 @@ const DashboardPage = () => {
                       <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500" /><span className="text-[10px] text-slate-500 font-bold uppercase">Threats</span></div>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="liveThreats" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} /><stop offset="95%" stopColor="#ef4444" stopOpacity={0} /></linearGradient>
-                        <linearGradient id="liveScans" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.2} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} /></linearGradient>
-                      </defs>
-                      <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} fill="url(#liveThreats)" dot={false} />
-                      <Area type="monotone" dataKey="scans" stroke="#0ea5e9" strokeWidth={2} fill="url(#liveScans)" dot={false} />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  <div className="overflow-x-auto custom-scrollbar -mx-2 px-2">
+                    <div className="min-w-[500px] h-[260px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="liveThreats" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} /><stop offset="95%" stopColor="#ef4444" stopOpacity={0} /></linearGradient>
+                            <linearGradient id="liveScans" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.2} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} /></linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} fill="url(#liveThreats)" dot={false} />
+                          <Area type="monotone" dataKey="scans" stroke="#0ea5e9" strokeWidth={2} fill="url(#liveScans)" dot={false} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Side Panel: Recent Alerts */}

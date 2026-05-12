@@ -1,6 +1,9 @@
+import os
 from serpapi import GoogleSearch
+from dotenv import load_dotenv
 
-API_KEY = "e4f5e3c0dea107b704a8c74a5a948b9868aa06cd0a791e4c59cc121e29920cbb"
+load_dotenv()
+API_KEY = os.getenv("SERPAPI_KEY")
 
 def test_key():
     params = {

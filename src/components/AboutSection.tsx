@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Shield, Users, Globe, Award, Target, Zap } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const AnimatedCounter = ({ end, duration = 2, suffix = '', prefix = '' }) => {
   const [count, setCount] = useState(0);
@@ -37,11 +38,12 @@ const stats = [
 ];
 
 const AboutSection = () => {
+  const { theme } = useTheme();
   const titleRef = useRef(null);
   const titleInView = useInView(titleRef, { once: true });
 
   return (
-    <section id="about" className="relative py-24 lg:py-32 bg-dark-navy overflow-hidden">
+    <section id="about" className={`relative py-24 lg:py-32 overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-dark-navy' : 'bg-white'}`}>
       {/* Background */}
       <div className="absolute inset-0 cyber-grid-bg opacity-40" />
       <div
@@ -67,17 +69,17 @@ const AboutSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={titleInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.1 }}
-            className="text-4xl lg:text-5xl font-black text-white mb-5"
+            className={`text-4xl lg:text-5xl font-black mb-5 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
           >
             Fighting the{' '}
-            <span className="text-gradient">Deepfake Epidemic</span>
+            <span className="text-[#0ea5e9]">Deepfake Epidemic</span>
           </motion.h2>
 
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={titleInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
-            className="text-slate-400 text-lg max-w-3xl mx-auto"
+            className={`text-lg max-w-3xl mx-auto ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}
           >
             By 2025, over 90% of online media will be AI-generated. DeepShield AI was born 
             from the urgent need to protect individuals from the escalating crisis of 
@@ -135,8 +137,8 @@ const AboutSection = () => {
             <div className="w-10 h-10 rounded-xl bg-[rgba(14,165,233,0.15)] border border-[rgba(14,165,233,0.2)] flex items-center justify-center mb-5">
               <Shield size={20} className="text-[#0ea5e9]" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-4">Why This Matters</h3>
-            <div className="space-y-4 text-sm text-slate-400 leading-relaxed">
+            <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Why This Matters</h3>
+            <div className={`space-y-4 text-sm leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
               <p>
                 Deepfake technology has democratized digital manipulation to the point where 
                 anyone with a consumer GPU can fabricate convincing videos of public figures, 
@@ -192,7 +194,7 @@ const AboutSection = () => {
                 >
                   {item.title}
                 </div>
-                <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
+                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>{item.desc}</p>
               </motion.div>
             ))}
           </motion.div>

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Mail, MessageCircle, Phone, ChevronDown, Send, Bot, Shield } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const faqs = [
   {
@@ -30,6 +31,7 @@ const faqs = [
 ];
 
 const FAQItem = ({ item, index }) => {
+  const { theme } = useTheme();
   const [open, setOpen] = useState(false);
 
   return (
@@ -38,14 +40,14 @@ const FAQItem = ({ item, index }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.07 }}
-      className="glass-card rounded-xl overflow-hidden"
+      className={`${theme === 'dark' ? 'glass-card' : 'bg-white shadow-sm border border-slate-200'} rounded-xl overflow-hidden`}
     >
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-5 text-left group"
         id={`faq-${index}`}
       >
-        <span className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors pr-4">
+        <span className={`text-sm font-semibold transition-colors pr-4 ${theme === 'dark' ? 'text-slate-200 group-hover:text-white' : 'text-slate-700 group-hover:text-[#0ea5e9]'}`}>
           {item.q}
         </span>
         <motion.div
@@ -62,7 +64,7 @@ const FAQItem = ({ item, index }) => {
         transition={{ duration: 0.3 }}
         className="overflow-hidden"
       >
-        <div className="px-5 pb-5 text-sm text-slate-400 leading-relaxed border-t border-[rgba(14,165,233,0.08)] pt-4">
+        <div className={`px-5 pb-5 text-sm leading-relaxed border-t pt-4 ${theme === 'dark' ? 'text-slate-400 border-[rgba(14,165,233,0.08)]' : 'text-slate-600 border-slate-100'}`}>
           {item.a}
         </div>
       </motion.div>
@@ -71,6 +73,7 @@ const FAQItem = ({ item, index }) => {
 };
 
 const ContactSection = () => {
+  const { theme } = useTheme();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -96,8 +99,8 @@ const ContactSection = () => {
   };
 
   return (
-    <section id="contact" className="relative py-24 lg:py-32 bg-deep-black overflow-hidden">
-      <div className="absolute inset-0 cyber-grid-bg opacity-30" />
+    <section id="contact" className={`relative py-24 lg:py-32 overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-deep-black' : 'bg-slate-50'}`}>
+      <div className={`absolute inset-0 cyber-grid-bg ${theme === 'dark' ? 'opacity-30' : 'opacity-10'}`} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -117,17 +120,17 @@ const ContactSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={titleInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.1 }}
-            className="text-4xl lg:text-5xl font-black text-white mb-5"
+            className={`text-4xl lg:text-5xl font-black mb-5 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
           >
             We're Here to{' '}
-            <span className="text-gradient">Protect You</span>
+            <span className="text-[#0ea5e9]">Protect You</span>
           </motion.h2>
 
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={titleInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
-            className="text-slate-400 text-lg max-w-2xl mx-auto"
+            className={`text-lg max-w-2xl mx-auto ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}
           >
             Contact our security team, explore enterprise solutions, or get 
             immediate AI-powered support.
@@ -141,9 +144,9 @@ const ContactSection = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
-            className="glass-card rounded-2xl p-8"
+            className={`${theme === 'dark' ? 'glass-card' : 'bg-white shadow-sm border border-slate-200'} rounded-2xl p-8`}
           >
-            <h3 className="text-xl font-bold text-white mb-6">Send a Message</h3>
+            <h3 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Send a Message</h3>
 
             {sent ? (
               <motion.div
@@ -154,8 +157,8 @@ const ContactSection = () => {
                 <div className="w-16 h-16 rounded-full bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center mx-auto mb-4">
                   <Shield size={28} className="text-emerald-400" />
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2">Message Sent!</h4>
-                <p className="text-sm text-slate-400">Our security team will respond within 24 hours.</p>
+                <h4 className={`text-lg font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Message Sent!</h4>
+                <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Our security team will respond within 24 hours.</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -315,7 +318,7 @@ const ContactSection = () => {
 
         {/* FAQ */}
         <div>
-          <h3 className="text-2xl font-bold text-white text-center mb-8">
+          <h3 className={`text-2xl font-bold text-center mb-8 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
             Frequently Asked Questions
           </h3>
           <div className="max-w-3xl mx-auto space-y-3">

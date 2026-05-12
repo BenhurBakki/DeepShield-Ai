@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
 import AuthPage from './AuthPage';
+import { ReactNode } from 'react';
 
 // Mock the AuthContext
 vi.mock('../context/AuthContext', () => ({
@@ -10,7 +11,7 @@ vi.mock('../context/AuthContext', () => ({
   }),
 }));
 
-const renderWithRouter = (ui) => {
+const renderWithRouter = (ui: ReactNode) => {
   return render(<BrowserRouter>{ui}</BrowserRouter>);
 };
 
@@ -38,7 +39,7 @@ describe('AuthPage', () => {
   it('updates form fields on user input', () => {
     renderWithRouter(<AuthPage />);
     
-    const emailInput = screen.getByPlaceholderText('Email Address');
+    const emailInput = screen.getByPlaceholderText('Email Address') as HTMLInputElement;
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     
     expect(emailInput.value).toBe('test@example.com');

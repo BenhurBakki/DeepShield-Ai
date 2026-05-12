@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Shield, Globe, Share2, Code2, Mail } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const Footer = () => {
+  const { theme } = useTheme();
   const links = {
     Product: ['Features', 'Dashboard', 'Reports', 'API Docs', 'Pricing'],
     Company: ['About', 'Blog', 'Careers', 'Press', 'Partners'],
@@ -10,22 +12,22 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative bg-dark-navy border-t border-[rgba(14,165,233,0.1)] overflow-hidden">
-      <div className="absolute inset-0 cyber-grid-bg opacity-30" />
+    <footer className={`relative border-t overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-dark-navy border-[rgba(14,165,233,0.1)]' : 'bg-white border-slate-200'}`}>
+      <div className={`absolute inset-0 cyber-grid-bg ${theme === 'dark' ? 'opacity-30' : 'opacity-10'}`} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
         {/* Top CTA banner */}
-        <div className="glass-card rounded-2xl p-8 mb-14 text-center relative overflow-hidden">
+        <div className={`${theme === 'dark' ? 'glass-card' : 'bg-slate-50 shadow-sm border border-slate-200'} rounded-2xl p-8 mb-14 text-center relative overflow-hidden`}>
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(135deg, rgba(14,165,233,0.08), rgba(139,92,246,0.05))' }}
+            style={{ background: theme === 'dark' ? 'linear-gradient(135deg, rgba(14,165,233,0.08), rgba(139,92,246,0.05))' : 'linear-gradient(135deg, rgba(14,165,233,0.03), rgba(139,92,246,0.02))' }}
           />
           <div className="relative z-10">
-            <h2 className="text-2xl lg:text-3xl font-black text-white mb-3">
+            <h2 className={`text-2xl lg:text-3xl font-black mb-3 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
               Start Protecting Your Identity{' '}
-              <span className="text-gradient">Today</span>
+              <span className="text-[#0ea5e9]">Today</span>
             </h2>
-            <p className="text-slate-400 text-sm mb-6 max-w-lg mx-auto">
+            <p className={`text-sm mb-6 max-w-lg mx-auto ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
               Join 50,000+ individuals who trust DeepShield AI to guard their 
               digital identity against AI manipulation.
             </p>
@@ -49,7 +51,7 @@ const Footer = () => {
                 <Shield size={18} className="text-white" />
               </div>
               <div>
-                <span className="text-white font-bold">DeepShield</span>
+                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>DeepShield</span>
                 <span className="text-[#0ea5e9] font-bold"> AI</span>
               </div>
             </div>
@@ -71,7 +73,7 @@ const Footer = () => {
           {/* Link columns */}
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-4">
+              <h4 className={`text-xs font-bold uppercase tracking-widest mb-4 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-900'}`}>
                 {category}
               </h4>
               <ul className="space-y-2.5">

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import {
   Search, ShieldAlert, FileText, Bell, Lock, Brain,
   ArrowRight,
@@ -76,6 +77,7 @@ const features = [
 ];
 
 const FeatureCard = ({ feature, index }) => {
+  const { theme } = useTheme();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const Icon = feature.icon;
@@ -88,7 +90,7 @@ const FeatureCard = ({ feature, index }) => {
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay: index * 0.1 }}
       onClick={() => navigate(feature.route)}
-      className="glass-card rounded-2xl p-6 group cursor-pointer relative overflow-hidden"
+      className={`${theme === 'dark' ? 'glass-card' : 'bg-white shadow-sm border border-slate-200'} rounded-2xl p-6 group cursor-pointer relative overflow-hidden`}
       id={`feature-card-${index}`}
     >
       {/* Hover background gradient */}
@@ -124,10 +126,10 @@ const FeatureCard = ({ feature, index }) => {
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-bold text-white mb-3 group-hover:text-gradient-blue transition-all">
+        <h3 className={`text-lg font-bold mb-3 group-hover:text-gradient-blue transition-all ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
           {feature.title}
         </h3>
-        <p className="text-sm text-slate-400 leading-relaxed mb-5">
+        <p className={`text-sm leading-relaxed mb-5 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
           {feature.description}
         </p>
 
@@ -153,17 +155,18 @@ const FeatureCard = ({ feature, index }) => {
 };
 
 const FeaturesSection = () => {
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const titleRef = useRef(null);
   const titleInView = useInView(titleRef, { once: true });
 
   return (
-    <section id="features" className="relative py-24 lg:py-32 bg-dark-navy overflow-hidden">
+    <section id="features" className={`relative py-24 lg:py-32 overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-dark-navy' : 'bg-slate-50'}`}>
       {/* Background */}
-      <div className="absolute inset-0 cyber-grid-bg opacity-50" />
+      <div className={`absolute inset-0 cyber-grid-bg ${theme === 'dark' ? 'opacity-50' : 'opacity-20'}`} />
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full"
-        style={{ background: 'radial-gradient(ellipse, rgba(14,165,233,0.04) 0%, transparent 70%)' }}
+        style={{ background: theme === 'dark' ? 'radial-gradient(ellipse, rgba(14,165,233,0.04) 0%, transparent 70%)' : 'radial-gradient(ellipse, rgba(14,165,233,0.08) 0%, transparent 70%)' }}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -173,7 +176,7 @@ const FeaturesSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={titleInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6 border border-[rgba(14,165,233,0.2)]"
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border ${theme === 'dark' ? 'glass border-[rgba(14,165,233,0.2)]' : 'bg-white shadow-sm border-slate-200'}`}
           >
             <div className="glow-dot" style={{ width: 6, height: 6 }} />
             <span className="text-xs font-medium text-[#0ea5e9] tracking-widest uppercase">
@@ -185,17 +188,17 @@ const FeaturesSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={titleInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-4xl lg:text-5xl font-black text-white mb-5"
+            className={`text-4xl lg:text-5xl font-black mb-5 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
           >
             Everything You Need to{' '}
-            <span className="text-gradient">Stay Protected</span>
+            <span className="text-[#0ea5e9]">Stay Protected</span>
           </motion.h2>
 
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={titleInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-slate-400 text-lg max-w-2xl mx-auto"
+            className={`text-lg max-w-2xl mx-auto ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}
           >
             Military-grade AI protection suite designed for individuals, enterprises,
             and law enforcement agencies combating digital identity fraud.

@@ -112,8 +112,8 @@ const ReportPage = () => {
           {/* Detected Sources */}
           <div className="mb-10">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4">Detected Sources</h3>
-            <div className="border border-slate-100 rounded-lg overflow-hidden">
-              <table className="w-full text-left text-xs">
+            <div className="border border-slate-100 rounded-lg overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left text-xs min-w-[500px]">
                 <thead className="bg-slate-50 border-b border-slate-100">
                   <tr>
                     <th className="px-4 py-3 font-bold text-slate-500">Platform</th>

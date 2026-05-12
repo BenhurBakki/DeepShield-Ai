@@ -58,7 +58,7 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left — Text */}
-          <div>
+          <div className="text-left">
             {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -81,7 +81,7 @@ const HeroSection = () => {
             >
               <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>Protect Your</span>
               <br />
-              <span className="shimmer-text">Identity From</span>
+              <span className="text-[#0ea5e9]">Identity From</span>
               <br />
               <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>AI Manipulation</span>
             </motion.h1>
@@ -141,15 +141,35 @@ const HeroSection = () => {
 
           {/* Right — Visual */}
           <div className="relative h-[520px] hidden lg:block">
-            {/* Central shield animation */}
+            {/* Central shield animation - DYNAMIC AND FLOATING */}
             <motion.div
               initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                y: [0, -15, 0] // Floating animation
+              }}
+              transition={{ 
+                opacity: { duration: 1, delay: 0.4 },
+                scale: { duration: 1, delay: 0.4 },
+                y: { duration: 3, repeat: Infinity, ease: "easeInOut" } // Infinite float
+              }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
             >
-              {/* Outer rings */}
-              {[180, 230, 280].map((size, i) => (
+              {/* Square outline (brackets) - Slightly smaller to avoid overlap */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 pointer-events-none">
+                {[
+                  { top: 0, left: 0, borderTop: '2px solid rgba(14,165,233,0.4)', borderLeft: '2px solid rgba(14,165,233,0.4)' },
+                  { top: 0, right: 0, borderTop: '2px solid rgba(14,165,233,0.4)', borderRight: '2px solid rgba(14,165,233,0.4)' },
+                  { bottom: 0, left: 0, borderBottom: '2px solid rgba(14,165,233,0.4)', borderLeft: '2px solid rgba(14,165,233,0.4)' },
+                  { bottom: 0, right: 0, borderBottom: '2px solid rgba(14,165,233,0.4)', borderRight: '2px solid rgba(14,165,233,0.4)' },
+                ].map((style, i) => (
+                  <div key={i} className="absolute w-7 h-7" style={style} />
+                ))}
+              </div>
+
+              {/* Outer rings - NO DOTS */}
+              {[170, 210, 250].map((size, i) => (
                 <div
                   key={i}
                   className="absolute rounded-full border border-[rgba(14,165,233,0.12)]"
@@ -161,21 +181,16 @@ const HeroSection = () => {
                     transform: 'translate(-50%, -50%)',
                     animation: `spin ${8 + i * 4}s linear infinite ${i % 2 === 1 ? 'reverse' : ''}`,
                   }}
-                >
-                  <div
-                    className="absolute top-0 left-1/2 w-2 h-2 rounded-full -translate-x-1/2 -translate-y-1/2"
-                    style={{ background: '#0ea5e9', boxShadow: '0 0 8px rgba(14,165,233,0.8)' }}
-                  />
-                </div>
+                />
               ))}
 
-              {/* Center shield - Animation removed as requested */}
+              {/* Center shield - Slightly smaller */}
               <div
-                className="relative z-10"
-                style={{ width: 120, height: 120 }}
+                className="relative"
+                style={{ width: 100, height: 100 }}
               >
-                <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#8b5cf6] flex items-center justify-center shadow-glow-blue">
-                  <Shield size={56} className="text-white" strokeWidth={1.5} />
+                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#8b5cf6] flex items-center justify-center shadow-glow-blue">
+                  <Shield size={48} className="text-white" strokeWidth={1.5} />
                 </div>
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#8b5cf6] blur-2xl opacity-30" />
               </div>
@@ -268,29 +283,6 @@ const HeroSection = () => {
               </div>
               <div className="text-[10px] text-slate-500 mt-1.5">+23% threats this week</div>
             </FloatingCard>
-
-            {/* Scanning face overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.6 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 pointer-events-none"
-              style={{ zIndex: 2 }}
-            >
-              {/* Corner brackets */}
-              {[
-                { top: 0, left: 0, borderTop: '2px solid #0ea5e9', borderLeft: '2px solid #0ea5e9' },
-                { top: 0, right: 0, borderTop: '2px solid #0ea5e9', borderRight: '2px solid #0ea5e9' },
-                { bottom: 0, left: 0, borderBottom: '2px solid #0ea5e9', borderLeft: '2px solid #0ea5e9' },
-                { bottom: 0, right: 0, borderBottom: '2px solid #0ea5e9', borderRight: '2px solid #0ea5e9' },
-              ].map((style, i) => (
-                <div
-                  key={i}
-                  className="absolute w-6 h-6 rounded-sm"
-                  style={style}
-                />
-              ))}
-            </motion.div>
           </div>
         </div>
       </div>
