@@ -59,7 +59,7 @@ const Navbar = () => {
               <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[#0ea5e9] to-[#8b5cf6] blur-md opacity-40 group-hover:opacity-70 transition-opacity" />
             </div>
             <div>
-              <span className="text-white font-bold text-lg tracking-tight">DeepShield</span>
+              <span className={`font-bold text-lg tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>DeepShield</span>
               <span className="text-[#0ea5e9] font-bold text-lg"> AI</span>
             </div>
           </Link>
@@ -68,7 +68,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full glass hover:bg-[rgba(14,165,233,0.1)] transition-colors border border-[rgba(14,165,233,0.2)]"
+              className={`p-2 rounded-full glass hover:bg-[rgba(14,165,233,0.1)] transition-colors border border-[rgba(14,165,233,0.2)]`}
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {theme === 'dark' ? (
@@ -81,13 +81,13 @@ const Navbar = () => {
               <button
                 key={link.label}
                 onClick={() => scrollTo(link.href)}
-                className="nav-link"
+                className={`nav-link ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}
               >
                 {link.label}
               </button>
             ))}
             {isDashboard && (
-              <Link to="/" className="nav-link">← Back to Home</Link>
+              <Link to="/" className={`nav-link ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>← Back to Home</Link>
             )}
           </div>
 
@@ -95,7 +95,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3">
             {!isDashboard ? (
               <>
-                <Link to="/dashboard" className="btn-secondary text-sm px-4 py-2">
+                <Link to="/dashboard" className={`btn-secondary text-sm px-4 py-2 ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700 border-slate-300'}`}>
                   Sign In
                 </Link>
                 <Link to="/dashboard" className="btn-primary text-sm px-4 py-2">
@@ -114,7 +114,7 @@ const Navbar = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden text-gray-400 hover:text-white transition-colors p-2"
+            className={`md:hidden transition-colors p-2 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>

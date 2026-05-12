@@ -5,13 +5,13 @@ import { useTheme } from '../context/ThemeContext';
 import { Shield, Scan, ArrowRight, Zap, Eye, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 
 // Animated floating card
-const FloatingCard = ({ children, className, delay = 0, style }) => (
+const FloatingCard = ({ children, className, delay = 0, style, theme }: any) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.8, delay }}
     style={style}
-    className={`glass-card rounded-2xl p-4 absolute ${className}`}
+    className={`${theme === 'dark' ? 'glass-card' : 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100'} rounded-2xl p-4 absolute ${className}`}
   >
     {children}
   </motion.div>
@@ -33,8 +33,12 @@ const HeroSection = () => {
       </div>
       
       <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'light' ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="absolute inset-0 bg-slate-50" />
+        <div className="absolute inset-0 bg-[#f8fafc]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(14,165,233,0.05),transparent_70%)]" />
+        {/* Large watermark shield */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none">
+          <Shield size={600} />
+        </div>
       </div>
 
       {/* Particle network removed as requested */}
@@ -181,12 +185,13 @@ const HeroSection = () => {
             <FloatingCard
               delay={0.8}
               className="top-12 left-0 w-52"
+              theme={theme}
             >
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-7 h-7 rounded-lg bg-[rgba(14,165,233,0.15)] flex items-center justify-center">
                   <Eye size={14} className="text-[#0ea5e9]" />
                 </div>
-                <span className="text-xs font-semibold text-slate-300">Similarity Score</span>
+                <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`}>Similarity Score</span>
               </div>
               <div className="text-2xl font-black text-[#0ea5e9] mb-1">94.3%</div>
               <div className="progress-bar">
@@ -198,12 +203,13 @@ const HeroSection = () => {
             <FloatingCard
               delay={1.0}
               className="top-12 right-0 w-52"
+              theme={theme}
             >
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-7 h-7 rounded-lg bg-[rgba(239,68,68,0.15)] flex items-center justify-center">
                   <AlertTriangle size={14} className="text-red-400" />
                 </div>
-                <span className="text-xs font-semibold text-slate-300">Deepfake Probability</span>
+                <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`}>Deepfake Probability</span>
               </div>
               <div className="text-2xl font-black text-red-400 mb-1">87.1%</div>
               <div className="progress-bar">
@@ -217,18 +223,19 @@ const HeroSection = () => {
             <FloatingCard
               delay={1.2}
               className="bottom-20 left-4 w-48"
+              theme={theme}
             >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-lg bg-[rgba(16,185,129,0.15)] flex items-center justify-center">
                   <CheckCircle size={14} className="text-emerald-400" />
                 </div>
-                <span className="text-xs font-semibold text-slate-300">AI Analysis</span>
+                <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`}>AI Analysis</span>
               </div>
               <div className="space-y-1.5">
                 {['Face Detection', 'Embedding Gen.', 'Dataset Scan'].map((step, i) => (
                   <div key={step} className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-                    <span className="text-[11px] text-slate-400">{step}</span>
+                    <span className={`text-[11px] ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{step}</span>
                     <span className="ml-auto text-[10px] text-emerald-400">✓</span>
                   </div>
                 ))}
@@ -238,12 +245,13 @@ const HeroSection = () => {
             <FloatingCard
               delay={1.4}
               className="bottom-16 right-2 w-52"
+              theme={theme}
             >
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-7 h-7 rounded-lg bg-[rgba(139,92,246,0.15)] flex items-center justify-center">
                   <TrendingUp size={14} className="text-violet-400" />
                 </div>
-                <span className="text-xs font-semibold text-slate-300">Threat Activity</span>
+                <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`}>Threat Activity</span>
               </div>
               <div className="flex items-end gap-1 h-12">
                 {[30, 50, 35, 70, 55, 85, 65, 90, 72, 95].map((h, i) => (

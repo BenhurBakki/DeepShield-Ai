@@ -35,7 +35,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed, theme }: any) => 
     <motion.aside
       animate={{ width: collapsed ? 64 : 240 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="glass border-r border-[rgba(14,165,233,0.12)] h-screen flex flex-col flex-shrink-0 relative z-20"
+      className={`${theme === 'dark' ? 'glass border-r border-[rgba(14,165,233,0.12)]' : 'bg-white border-r border-slate-200 shadow-sm'} h-screen flex flex-col flex-shrink-0 relative z-20`}
       style={{ minWidth: collapsed ? 64 : 240 }}
     >
       {/* Logo */}
@@ -630,22 +630,22 @@ const DashboardPage = () => {
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <div className="glass border-b border-[rgba(14,165,233,0.12)] px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <div className={`${theme === 'dark' ? 'glass border-b border-[rgba(14,165,233,0.12)]' : 'bg-white border-b border-slate-200 shadow-sm'} px-6 py-4 flex items-center justify-between flex-shrink-0`}>
           <div>
             <div className="flex items-center gap-2 mb-0.5">
-              <h1 className="text-xl font-black tracking-tight">
-                {{ dashboard: 'System Overview', scan: 'AI Threat Scan', 'face-trace': 'Identity Mapping', threats: 'Security Alerts', analytics: 'Deep Analysis', settings: 'Environment Config' }[active] || 'Dashboard'}
+              <h1 className={`text-xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                {{ dashboard: 'Overview', scan: 'New Scan', 'face-trace': 'Face Trace', threats: 'Threat Alerts', analytics: 'Analytics', settings: 'Settings' }[active] || 'Dashboard'}
               </h1>
               <span className="text-[10px] font-bold bg-[#0ea5e9]/10 text-[#0ea5e9] px-2 py-0.5 rounded-md border border-[#0ea5e9]/20">v4.2.0</span>
             </div>
-            <p className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Welcome back, <span className="font-bold text-[#0ea5e9]">Investigator Alex</span></p>
+            <p className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>DeepShield AI — <span className="font-medium">Identity Protection Platform</span></p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 glass rounded-full px-3 py-1.5 border border-[rgba(14,165,233,0.15)]">
+            <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 border ${theme === 'dark' ? 'glass border-[rgba(14,165,233,0.15)]' : 'bg-white border-slate-200 shadow-sm'}`}>
               <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
-              <span className="text-xs text-slate-300 font-medium">Systems Online</span>
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`}>Systems Online</span>
             </div>
-            <Link to="/" className="btn-secondary text-xs px-3 py-2">← Home</Link>
+            <Link to="/" className={`btn-secondary text-xs px-3 py-2 ${theme === 'light' ? 'bg-white border-slate-200' : ''}`}>← Home</Link>
           </div>
         </div>
 
@@ -689,32 +689,96 @@ const DashboardPage = () => {
           {/* ── ANALYTICS VIEW ── */}
           {active === 'analytics' && (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-              <h2 className="text-base font-bold text-white mb-5">Threat & Scan Analytics</h2>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Threat & Scan Analytics</h2>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Real-time platform performance metrics</p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="bg-blue-500/10 text-blue-500 text-[10px] font-bold px-3 py-1 rounded-md border border-blue-500/20">Last 30 Days</button>
+                  <button className="text-slate-500 text-[10px] font-bold px-3 py-1 rounded-md border border-slate-200">This Year</button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[
-                  { label: 'Total Scans', value: userStats.totalScans.toLocaleString(), color: '#0ea5e9' },
-                  { label: 'Threats Found', value: userStats.threatsFound, color: '#ef4444' },
-                  { label: 'Avg. Similarity', value: '72.4%', color: '#8b5cf6' },
-                  { label: 'Reports Generated', value: '34', color: '#10b981' },
+                  { label: 'Detection Rate', value: '98.2%', sub: 'True positive rate', icon: Zap, color: '#0ea5e9' },
+                  { label: 'False Positives', value: '1.4%', sub: 'Margin of error', icon: AlertTriangle, color: '#f59e0b' },
+                  { label: 'Avg. Processing Time', value: '1.2s', sub: 'Per media file', icon: Activity, color: '#8b5cf6' },
+                  { label: 'High Risk Threats', value: '24', sub: 'Requires action', icon: Shield, color: '#ef4444' },
                 ].map(s => (
-                  <div key={s.label} className="glass-card rounded-xl p-4 text-center">
-                    <div className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
-                    <div className="text-xs text-slate-500">{s.label}</div>
+                  <div key={s.label} className={`${theme === 'dark' ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm'} rounded-xl p-5`}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${s.color}10` }}>
+                        <s.icon size={16} style={{ color: s.color }} />
+                      </div>
+                      <div className="flex-1">
+                        <div className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{s.value}</div>
+                      </div>
+                    </div>
+                    <div className={`text-[11px] font-bold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-800'} mb-0.5`}>{s.label}</div>
+                    <div className="text-[10px] text-slate-500">{s.sub}</div>
                   </div>
                 ))}
               </div>
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><BarChart3 size={15} className="text-[#0ea5e9]" /> 12-Month Activity</h3>
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="gt" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} /><stop offset="95%" stopColor="#ef4444" stopOpacity={0} /></linearGradient>
-                      <linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} /></linearGradient>
-                    </defs>
-                    <Tooltip contentStyle={{ background: '#0f1a2e', border: '1px solid rgba(14,165,233,0.2)', borderRadius: 8, fontSize: 11 }} labelStyle={{ color: '#94a3b8' }} />
-                    <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} fill="url(#gt)" dot={false} />
-                    <Area type="monotone" dataKey="scans" stroke="#0ea5e9" strokeWidth={2} fill="url(#gs)" dot={false} />
-                  </AreaChart>
+
+              <div className="grid lg:grid-cols-2 gap-6 mb-6">
+                <div className={`${theme === 'dark' ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm'} rounded-2xl p-6`}>
+                   <h3 className={`text-sm font-bold flex items-center gap-2 mb-8 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}><Database size={15} className="text-violet-500" /> Threats by Source</h3>
+                   <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={[
+                      { name: 'Social Media', value: 45, color: '#0ea5e9' },
+                      { name: 'Image Boards', value: 28, color: '#8b5cf6' },
+                      { name: 'Dark Web', value: 15, color: '#ef4444' },
+                      { name: 'News Sites', value: 12, color: '#10b981' }
+                    ]} layout="vertical" margin={{ left: 40 }}>
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={15}>
+                        {[0,1,2,3].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#0ea5e9', '#8b5cf6', '#ef4444', '#10b981'][index]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                   </ResponsiveContainer>
+                </div>
+                <div className={`${theme === 'dark' ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm'} rounded-2xl p-6`}>
+                   <h3 className={`text-sm font-bold flex items-center gap-2 mb-8 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}><ScanLine size={15} className="text-blue-500" /> Media Scanned</h3>
+                   <div className="flex items-center">
+                    <ResponsiveContainer width="60%" height={200}>
+                      <PieChart>
+                        <Pie data={[{ name: 'Images', value: 68 }, { name: 'Videos', value: 32 }]} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                          <Cell fill="#0ea5e9" />
+                          <Cell fill="#8b5cf6" />
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-blue-500" />
+                        <div>
+                          <div className={`text-xs font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>68%</div>
+                          <div className="text-[10px] text-slate-500 uppercase">Images</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-violet-500" />
+                        <div>
+                          <div className={`text-xs font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>32%</div>
+                          <div className="text-[10px] text-slate-500 uppercase">Videos</div>
+                        </div>
+                      </div>
+                    </div>
+                   </div>
+                </div>
+              </div>
+
+              <div className={`${theme === 'dark' ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm'} rounded-2xl p-6`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 mb-8 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}><TrendingUp size={15} className="text-emerald-500" /> Detection Accuracy Trend</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={[94.4, 97.8, 95.2, 96.1, 94.8, 97.2, 98.1, 97.5, 98.4, 97.9].map((v, i) => ({ val: v, time: i }))}>
+                    <Line type="monotone" dataKey="val" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} />
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
             </motion.div>
@@ -760,81 +824,69 @@ const DashboardPage = () => {
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[
-                  { label: 'Total Scans', value: userStats.totalScans.toLocaleString(), icon: ScanLine, color: '#0ea5e9', delta: '+1' },
-                  { label: 'Threats Found', value: userStats.threatsFound, icon: AlertTriangle, color: '#ef4444', delta: '+3' },
-                  { label: 'Protected IDs', value: userStats.protectedIds, icon: Shield, color: '#10b981', delta: '+5%' },
-                  { label: 'Avg. Score', value: `${userStats.avgScore}%`, icon: TrendingUp, color: '#8b5cf6', delta: '▲ 2.3%' },
+                  { label: 'Total Scans', value: userStats.totalScans, icon: ScanLine, color: '#0ea5e9', delta: '+12%', iconBg: 'bg-blue-500/10' },
+                  { label: 'Threats Found', value: userStats.threatsFound, icon: AlertTriangle, color: '#ef4444', delta: '+3', iconBg: 'bg-red-500/10' },
+                  { label: 'Protected IDs', value: userStats.protectedIds, icon: Shield, color: '#10b981', delta: '+5%', iconBg: 'bg-emerald-500/10' },
+                  { label: 'Avg. Score', value: `${userStats.avgScore}%`, icon: TrendingUp, color: '#8b5cf6', delta: '▲ 2.3%', iconBg: 'bg-violet-500/10' },
                 ].map((s) => {
                   const Icon = s.icon;
                   return (
-                    <motion.div key={s.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${s.color}18`, border: `1px solid ${s.color}30` }}>
-                          <Icon size={15} style={{ color: s.color }} />
+                    <motion.div key={s.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className={`${theme === 'dark' ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm'} rounded-xl p-4`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${s.iconBg}`}>
+                          <Icon size={16} style={{ color: s.color }} />
                         </div>
-                        <span className="text-[10px] font-semibold" style={{ color: s.color }}>{s.delta}</span>
+                        <span className={`text-[9px] font-bold ${s.delta.includes('+') || s.delta.includes('▲') ? 'text-emerald-500' : 'text-slate-400'}`}>{s.delta}</span>
                       </div>
-                      <div className="text-2xl font-black text-white mb-0.5">{s.value}</div>
-                      <div className="text-xs text-slate-500">{s.label}</div>
+                      <div className={`text-2xl font-black mb-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{s.value}</div>
+                      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">{s.label}</div>
                     </motion.div>
                   );
                 })}
               </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <button onClick={() => setActive('scan')} className="btn-primary justify-center py-3"><ScanLine size={15} /> New Scan</button>
-                <Link to="/report" className="btn-secondary justify-center py-3"><FileText size={15} /> View Reports</Link>
-              </div>
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><BarChart3 size={15} className="text-[#0ea5e9]" /> Threat Activity (12 months)</h3>
-                <ResponsiveContainer width="100%" height={180}>
-                  <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="threats" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} /><stop offset="95%" stopColor="#ef4444" stopOpacity={0} /></linearGradient>
-                      <linearGradient id="scans" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} /></linearGradient>
-                    </defs>
-                    <Tooltip contentStyle={{ background: '#0f1a2e', border: '1px solid rgba(14,165,233,0.2)', borderRadius: 8, fontSize: 11 }} labelStyle={{ color: '#94a3b8' }} />
-                    <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} fill="url(#threats)" dot={false} />
-                    <Area type="monotone" dataKey="scans" stroke="#0ea5e9" strokeWidth={2} fill="url(#scans)" dot={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
 
-              {/* Technical Justification / Benchmark Section */}
-              <div className="glass-card rounded-2xl p-5 mt-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Industry Benchmarking</h3>
-                  <div className="flex items-center gap-1.5 text-[9px] font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
-                    <CheckCircle size={9} /> Validated v1.0
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Main Chart */}
+                <div className={`lg:col-span-2 ${theme === 'dark' ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm'} rounded-2xl p-6`}>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className={`text-sm font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}><Activity size={15} className="text-[#0ea5e9]" /> Threat Activity (Live)</h3>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-[10px] text-slate-500 font-bold uppercase">Scans</span></div>
+                      <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500" /><span className="text-[10px] text-slate-500 font-bold uppercase">Threats</span></div>
+                    </div>
                   </div>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="liveThreats" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} /><stop offset="95%" stopColor="#ef4444" stopOpacity={0} /></linearGradient>
+                        <linearGradient id="liveScans" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.2} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} /></linearGradient>
+                      </defs>
+                      <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} fill="url(#liveThreats)" dot={false} />
+                      <Area type="monotone" dataKey="scans" stroke="#0ea5e9" strokeWidth={2} fill="url(#liveScans)" dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="space-y-3">
+
+                {/* Side Panel: Recent Alerts */}
+                <div className="space-y-4">
+                  <div className={`flex items-center gap-2 mb-4 text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                    <Bell size={16} className="text-amber-500" /> Recent Alerts
+                  </div>
                   {[
-                    { label: 'Deepfake Accuracy', ds: '96.4%', trad: '74.1%', icon: Zap },
-                    { label: 'Trace Speed', ds: '1.2s', trad: '8.5s', icon: Globe },
-                    { label: 'False Positives', ds: '0.4%', trad: '4.2%', icon: AlertTriangle },
-                  ].map((item) => (
-                    <div key={item.label}>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <item.icon size={11} className="text-slate-500" />
-                          <span className="text-[10px] text-slate-300">{item.label}</span>
-                        </div>
-                        <div className="flex gap-3">
-                          <span className="text-[10px] font-bold text-[#0ea5e9]">{item.ds}</span>
-                          <span className="text-[10px] font-medium text-slate-600 line-through decoration-slate-700">{item.trad}</span>
-                        </div>
+                    { title: 'Identity exposure found', time: '2h ago', risk: 'HIGH', color: 'amber' },
+                    { title: 'Deepfake video match', time: '5h ago', risk: 'CRITICAL', color: 'red' },
+                    { title: 'New device logged in', time: '1d ago', risk: 'LOW', color: 'emerald' },
+                  ].map((alert, i) => (
+                    <div key={i} className={`${theme === 'dark' ? 'bg-slate-800/40' : 'bg-slate-100/80'} rounded-xl p-4 border border-transparent hover:border-blue-500/30 transition-all cursor-pointer`}>
+                      <div className="flex items-start justify-between mb-1">
+                        <div className={`text-xs font-bold ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{alert.title}</div>
+                        <div className={`text-[8px] font-black px-1.5 py-0.5 rounded bg-${alert.color}-500/10 text-${alert.color}-500 border border-${alert.color}-500/20 uppercase`}>{alert.risk}</div>
                       </div>
-                      <div className="h-1 bg-slate-800/50 rounded-full overflow-hidden flex">
-                        <div className="h-full bg-[#0ea5e9]" style={{ width: item.ds }} />
-                        <div className="h-full bg-slate-700/30" style={{ width: '20%' }} />
-                      </div>
+                      <div className="text-[10px] text-slate-400 font-medium">{alert.time} • <span className="text-blue-500">View</span></div>
                     </div>
                   ))}
+                  <button className="w-full py-3 text-[11px] font-bold text-blue-500 hover:text-blue-600 transition-colors">View All Alerts →</button>
                 </div>
-                <p className="text-[9px] text-slate-500 mt-4 leading-relaxed italic">
-                  * Technical analysis based on Cross-Dataset Generalization tests (FaceForensics++ vs. Wild Data). 
-                  DeepShield AI utilizes adaptive ResNet18 weights to significantly outperform traditional metadata-only detection.
-                </p>
               </div>
             </motion.div>
           )}
