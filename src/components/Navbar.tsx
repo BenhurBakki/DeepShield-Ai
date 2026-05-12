@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Shield, Menu, X, Zap } from 'lucide-react';
+import { Shield, Menu, X, Zap, Moon, Sun } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const isDashboard = location.pathname === '/dashboard' || location.pathname === '/report';
 
   useEffect(() => {
@@ -64,6 +66,17 @@ const Navbar = () => {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full glass hover:bg-[rgba(14,165,233,0.1)] transition-colors border border-[rgba(14,165,233,0.2)]"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? (
+                <Sun size={18} className="text-[#0ea5e9]" />
+              ) : (
+                <Moon size={18} className="text-slate-600" />
+              )}
+            </button>
             {!isDashboard && navLinks.map((link) => (
               <button
                 key={link.label}

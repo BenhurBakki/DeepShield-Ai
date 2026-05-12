@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { Shield, Scan, ArrowRight, Zap, Eye, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 
 // Animated floating card
@@ -16,104 +17,27 @@ const FloatingCard = ({ children, className, delay = 0, style }) => (
   </motion.div>
 );
 
-// Animated particle canvas
-const ParticleNetwork = () => {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const nodes = Array.from({ length: 80 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 2 + 1,
-      pulse: Math.random() * Math.PI * 2,
-    }));
-
-    let animId;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw connections
-      nodes.forEach((a, i) => {
-        nodes.slice(i + 1).forEach((b) => {
-          const dist = Math.hypot(a.x - b.x, a.y - b.y);
-          if (dist < 150) {
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            const alpha = (1 - dist / 150) * 0.15;
-            ctx.strokeStyle = `rgba(14, 165, 233, ${alpha})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
-      });
-
-      // Draw nodes
-      nodes.forEach((node) => {
-        node.pulse += 0.03;
-        const pulseR = node.r + Math.sin(node.pulse) * 0.5;
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, pulseR, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(14, 165, 233, 0.6)`;
-        ctx.fill();
-
-        // Glow
-        const grad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, 8);
-        grad.addColorStop(0, 'rgba(14,165,233,0.2)');
-        grad.addColorStop(1, 'transparent');
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        node.x += node.vx;
-        node.y += node.vy;
-        if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
-        if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
-      });
-
-      animId = requestAnimationFrame(draw);
-    };
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ zIndex: 1 }}
-    />
-  );
-};
+// Animated floating card removed ParticleNetwork definition
 
 const HeroSection = () => {
-  return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-deep-black">
-      {/* Background */}
-      <div className="absolute inset-0 cyber-grid-bg" />
-      <div className="absolute inset-0 bg-gradient-radial from-[rgba(14,165,233,0.06)] via-transparent to-transparent" style={{ top: '10%', left: '20%', width: '60%', height: '60%' }} />
-      <div className="absolute inset-0 bg-gradient-radial from-[rgba(139,92,246,0.04)] via-transparent to-transparent" style={{ bottom: '0', right: '0', width: '50%', height: '50%' }} />
+  const { theme } = useTheme();
 
-      {/* Particle network */}
-      <ParticleNetwork />
+  return (
+    <section className={`relative min-h-screen flex items-center overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-deep-black' : 'bg-[#f8fafc]'}`}>
+      {/* Background */}
+      <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'dark' ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="absolute inset-0 bg-slate-950" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(14,165,233,0.1),transparent_70%)]" />
+        <div className="absolute inset-0 bg-gradient-radial from-[rgba(14,165,233,0.08)] via-transparent to-transparent" style={{ top: '10%', left: '20%', width: '60%', height: '60%' }} />
+        <div className="absolute inset-0 bg-gradient-radial from-[rgba(139,92,246,0.06)] via-transparent to-transparent" style={{ bottom: '0', right: '0', width: '50%', height: '50%' }} />
+      </div>
+      
+      <div className={`absolute inset-0 transition-opacity duration-700 ${theme === 'light' ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="absolute inset-0 bg-slate-50" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(14,165,233,0.05),transparent_70%)]" />
+      </div>
+
+      {/* Particle network removed as requested */}
 
       {/* Scanning line effect */}
       <div
@@ -151,11 +75,11 @@ const HeroSection = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight mb-6"
             >
-              <span className="text-white">Protect Your</span>
+              <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>Protect Your</span>
               <br />
               <span className="shimmer-text">Identity From</span>
               <br />
-              <span className="text-white">AI Manipulation</span>
+              <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>AI Manipulation</span>
             </motion.h1>
 
             {/* Subheadline */}
@@ -163,7 +87,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.5 }}
-              className="text-lg text-slate-400 leading-relaxed mb-10 max-w-xl"
+              className={`text-lg leading-relaxed mb-10 max-w-xl ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}
             >
               DeepShield AI scans millions of datasets to detect deepfakes, facial misuse, 
               and AI-generated media — delivering real-time threat intelligence to guard 
@@ -241,10 +165,8 @@ const HeroSection = () => {
                 </div>
               ))}
 
-              {/* Center shield */}
-              <motion.div
-                animate={{ y: [-8, 8, -8] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              {/* Center shield - Animation removed as requested */}
+              <div
                 className="relative z-10"
                 style={{ width: 120, height: 120 }}
               >
@@ -252,7 +174,7 @@ const HeroSection = () => {
                   <Shield size={56} className="text-white" strokeWidth={1.5} />
                 </div>
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#8b5cf6] blur-2xl opacity-30" />
-              </motion.div>
+              </div>
             </motion.div>
 
             {/* Floating data cards */}
@@ -366,7 +288,7 @@ const HeroSection = () => {
       </div>
 
       {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#020408] to-transparent" />
+      <div className={`absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t ${theme === 'dark' ? 'from-[#020408]' : 'from-[#f8fafc]'} to-transparent`} />
 
       {/* Scroll indicator */}
       <motion.div

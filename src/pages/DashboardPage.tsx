@@ -10,10 +10,11 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import FaceTracePanel from './FaceTracePage';
 
 // Sidebar
-const Sidebar = ({ active, setActive, collapsed, setCollapsed }: any) => {
+const Sidebar = ({ active, setActive, collapsed, setCollapsed, theme }: any) => {
   const navigate = useNavigate();
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -44,7 +45,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed }: any) => {
         </div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-            <div className="text-sm font-bold text-white">DeepShield <span className="text-[#0ea5e9]">AI</span></div>
+            <div className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>DeepShield <span className="text-[#0ea5e9]">AI</span></div>
             <div className="text-[10px] text-slate-500">Security Dashboard</div>
           </motion.div>
         )}
@@ -69,7 +70,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed }: any) => {
                   </span>
                 )}
               </div>
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && <span className={active === item.id ? 'text-[#0ea5e9]' : theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}>{item.label}</span>}
             </button>
           );
         })}
@@ -82,7 +83,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed }: any) => {
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-white truncate">Alex Morgan</div>
+            <div className={`text-xs font-semibold truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Alex Morgan</div>
             <div className="text-[10px] text-slate-500">Pro Plan</div>
           </div>
         )}
@@ -435,6 +436,7 @@ const chartData = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 const DashboardPage = () => {
+  const { theme } = useTheme();
   const location = useLocation();
   const initialTab = new URLSearchParams(location.search).get('tab') || 'dashboard';
   const [active, setActive] = useState(initialTab);
@@ -449,6 +451,15 @@ const DashboardPage = () => {
   const [file, setFile] = useState<any>(null);
   const [preview, setPreview] = useState<any>(null);
   const [error, setError] = useState<any>(null);
+  const [userStats, setUserStats] = useState(() => {
+    const saved = localStorage.getItem('deepshield-stats');
+    return saved ? JSON.parse(saved) : { totalScans: 1247, threatsFound: 89, protectedIds: 352, avgScore: 94.1 };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('deepshield-stats', JSON.stringify(userStats));
+  }, [userStats]);
+
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -583,6 +594,12 @@ const DashboardPage = () => {
       
       if (response.ok) {
         setShowResults(data);
+        setUserStats((prev: any) => ({
+          ...prev,
+          totalScans: prev.totalScans + 1,
+          threatsFound: data.probability > 0.5 ? prev.threatsFound + 1 : prev.threatsFound,
+          protectedIds: data.probability < 0.5 ? prev.protectedIds + 1 : prev.protectedIds
+        }));
       } else {
         setShowResults({ _error: true, message: data.error || 'Detection failed. Please try again.' });
       }
@@ -607,18 +624,21 @@ const DashboardPage = () => {
   useEffect(() => () => clearInterval(intervalRef.current), []);
 
   return (
-    <div className="flex h-screen bg-deep-black overflow-hidden">
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
+    <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'bg-[#020408] text-white' : 'bg-[#f8fafc] text-slate-900'}`}>
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} theme={theme} />
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
         <div className="glass border-b border-[rgba(14,165,233,0.12)] px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div>
-            <h1 className="text-lg font-bold text-white">
-              {{ dashboard: 'Overview', scan: 'New Scan', 'face-trace': 'Face Trace', threats: 'Threat Alerts', analytics: 'Analytics', settings: 'Settings' }[active] || 'Dashboard'}
-            </h1>
-            <p className="text-xs text-slate-500">DeepShield AI — Identity Protection Platform</p>
+            <div className="flex items-center gap-2 mb-0.5">
+              <h1 className="text-xl font-black tracking-tight">
+                {{ dashboard: 'System Overview', scan: 'AI Threat Scan', 'face-trace': 'Identity Mapping', threats: 'Security Alerts', analytics: 'Deep Analysis', settings: 'Environment Config' }[active] || 'Dashboard'}
+              </h1>
+              <span className="text-[10px] font-bold bg-[#0ea5e9]/10 text-[#0ea5e9] px-2 py-0.5 rounded-md border border-[#0ea5e9]/20">v4.2.0</span>
+            </div>
+            <p className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Welcome back, <span className="font-bold text-[#0ea5e9]">Investigator Alex</span></p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 glass rounded-full px-3 py-1.5 border border-[rgba(14,165,233,0.15)]">
@@ -672,8 +692,8 @@ const DashboardPage = () => {
               <h2 className="text-base font-bold text-white mb-5">Threat & Scan Analytics</h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[
-                  { label: 'Total Scans', value: '1,247', color: '#0ea5e9' },
-                  { label: 'Threats Found', value: '89', color: '#ef4444' },
+                  { label: 'Total Scans', value: userStats.totalScans.toLocaleString(), color: '#0ea5e9' },
+                  { label: 'Threats Found', value: userStats.threatsFound, color: '#ef4444' },
                   { label: 'Avg. Similarity', value: '72.4%', color: '#8b5cf6' },
                   { label: 'Reports Generated', value: '34', color: '#10b981' },
                 ].map(s => (
@@ -740,10 +760,10 @@ const DashboardPage = () => {
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[
-                  { label: 'Total Scans', value: '1,247', icon: ScanLine, color: '#0ea5e9', delta: '+12%' },
-                  { label: 'Threats Found', value: '89', icon: AlertTriangle, color: '#ef4444', delta: '+3' },
-                  { label: 'Protected IDs', value: '352', icon: Shield, color: '#10b981', delta: '+5%' },
-                  { label: 'Avg. Score', value: '94.1%', icon: TrendingUp, color: '#8b5cf6', delta: '▲ 2.3%' },
+                  { label: 'Total Scans', value: userStats.totalScans.toLocaleString(), icon: ScanLine, color: '#0ea5e9', delta: '+1' },
+                  { label: 'Threats Found', value: userStats.threatsFound, icon: AlertTriangle, color: '#ef4444', delta: '+3' },
+                  { label: 'Protected IDs', value: userStats.protectedIds, icon: Shield, color: '#10b981', delta: '+5%' },
+                  { label: 'Avg. Score', value: `${userStats.avgScore}%`, icon: TrendingUp, color: '#8b5cf6', delta: '▲ 2.3%' },
                 ].map((s) => {
                   const Icon = s.icon;
                   return (

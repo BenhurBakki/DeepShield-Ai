@@ -819,7 +819,7 @@ def health_v2():
     })
 
 print("\n" + "="*40)
-print("🚀 DEEPSHIELD STABLE REVERT SUCCESSFUL")
+print("DEEPSHIELD STABLE REVERT SUCCESSFUL")
 print(f"Version: {VERSION}")
 print("="*40 + "\n")
 

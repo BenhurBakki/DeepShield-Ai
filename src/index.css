@@ -22,6 +22,50 @@
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Light Mode Overrides */
+  :root.light body {
+    background-color: #f8fafc;
+    color: #1e293b;
+  }
+
+  :root.light .glass {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(14, 165, 233, 0.1);
+  }
+
+  :root.light .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(14, 165, 233, 0.15);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    color: #334155;
+  }
+
+  :root.light .text-white {
+    color: #0f172a !important;
+  }
+
+  :root.light .text-slate-400, :root.light .text-slate-500 {
+    color: #64748b !important;
+  }
+
+  :root.light .sidebar-item {
+    color: #64748b;
+  }
+
+  :root.light .sidebar-item:hover {
+    background: rgba(14, 165, 233, 0.08);
+    color: #0ea5e9;
+  }
+
+  :root.light .nav-link {
+    color: #64748b;
+  }
+
+  :root.light .nav-link:hover {
+    color: #0ea5e9;
   }
 
   ::-webkit-scrollbar {
